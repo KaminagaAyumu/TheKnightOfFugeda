@@ -1,6 +1,5 @@
-#pragma once
+﻿#pragma once
 #include "../../MyLib/GameObject.h"
-#include "../../MyLib/Component/Transform.h"
 #include "../../MyLib/Component/Draw/UI/UIImage.h"
 #include <memory>
 #include <vector>

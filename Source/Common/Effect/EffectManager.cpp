@@ -1,4 +1,4 @@
-#include "EffectManager.h"
+﻿#include "EffectManager.h"
 #include "Effect.h"
 #include "EffekseerForDXLib.h"
 #include <cassert>

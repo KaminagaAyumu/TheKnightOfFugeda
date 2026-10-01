@@ -1,4 +1,4 @@
-#include "UIImage.h"
+﻿#include "UIImage.h"
 #include "../../../GameObject.h"
 #include "../../../Renderer.h"
 #include "../../../../Geometry/Vector2Int.h"
@@ -127,6 +127,8 @@ void MyLib::UIImage::End()
 {
 	m_pFrameFile.reset();
 	m_pImageFile.reset();
+
+	Renderer::GetInstance().Exit(shared_from_this());
 }
 
 void MyLib::UIImage::Draw() const

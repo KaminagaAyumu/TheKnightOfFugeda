@@ -1,5 +1,13 @@
-#include "ResourceManifestData.h"
+﻿#include "ResourceManifestData.h"
 #include <cassert>
+
+namespace
+{
+	// CSVの列番号
+	constexpr int kPathColumn = 0;	// リソースのパス
+	constexpr int kTypeColumn = 1;	// リソースの種類
+	constexpr int kIsEternalColumn = 2;	// 常に存在するリソースかどうか(0以外でtrue)
+}
 
 void ResourceManifestData::ConvertManifestData()
 {
@@ -11,9 +19,9 @@ void ResourceManifestData::ConvertManifestData()
 		int row = static_cast<int>(i);
 
 		ResourceRequest request;
-		request.path = Read<std::wstring>(row, 0);
-		request.type = ToFileType(Read<std::wstring>(row, 1));
-		request.isEternal = Read<int>(row, 2) != 0;
+		request.path = Read<std::wstring>(row, kPathColumn);
+		request.type = ToFileType(Read<std::wstring>(row, kTypeColumn));
+		request.isEternal = Read<int>(row, kIsEternalColumn) != 0;
 
 		m_resourceRequests.push_back(request);
 	}

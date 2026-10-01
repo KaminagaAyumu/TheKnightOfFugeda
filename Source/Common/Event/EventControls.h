@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 //#include "../TextManager.h"
 //#include "../../Utility/Geometry.h"
 #include <functional>

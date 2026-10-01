@@ -1,4 +1,4 @@
-#include "EnemyStateDetect.h"
+﻿#include "EnemyStateDetect.h"
 #include "EnemyStateShot.h"
 #include "../../../MyLib/Component/Controller/Enemy/EnemyController.h"
 #include "../../../MyLib/Component/Transform.h"

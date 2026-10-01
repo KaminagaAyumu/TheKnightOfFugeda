@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../Geometry/BoundingBox.h"
 #include "../../Geometry/Quaternion.h"
 #include "../../Geometry/Matrix4x4.h"
@@ -27,6 +27,7 @@ namespace MyLib
 			Stage,			// ステージ
 			PlayerAttach,	// プレイヤーについている判定
 			EnemyBullet,	// 敵の弾
+			Item			// アイテム
 		};
 
 		/// <summary>

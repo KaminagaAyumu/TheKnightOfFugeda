@@ -1,4 +1,4 @@
-#include "EnemyManager.h"
+﻿#include "EnemyManager.h"
 #include "EnemyBase.h"
 #include "../../MyLib/ObjectFactory.h"
 #include "../../MyLib/MyMath.h"
@@ -14,11 +14,15 @@ namespace
 	// ロックオン対象にする敵とプレイヤーの距離の最大値
 	constexpr float kMaxLockOnDist = 15.0f;
 
+	// カメラからの距離がこれより近い敵は判定しない(0除算を防ぐ)
+	constexpr float kMinDistFromCamera = 1e-4f;
+
 	// ファイルを読み込む際のパスの最大サイズ(文字数)
 	constexpr size_t kFilePathMax = 256;
 }
 
-EnemyManager::EnemyManager()
+EnemyManager::EnemyManager() : 
+	m_deadCountThisFrame(0)
 {
 }
 
@@ -37,12 +41,15 @@ void EnemyManager::Init(int stageNo)
 
 void EnemyManager::Update()
 {
+	size_t before = m_pEnemies.size();
+
 	// 敵の中で削除されているものを探す
 	m_pEnemies.remove_if([](std::weak_ptr<EnemyBase> object)
 		{
 			// 削除されている際にリストから消去する
 			return object.expired();
 		});
+	m_deadCountThisFrame = static_cast<int>(before - m_pEnemies.size());
 }
 
 void EnemyManager::End()
@@ -102,7 +109,7 @@ std::weak_ptr<MyLib::Transform> EnemyManager::GetNearEnemyTransform(const Vector
 		// カメラからの距離を取得
 		float distFromCamera = toEnemy.Length();
 		// カメラからの距離が一定より近い場合処理をしない
-		if (distFromCamera < 1e-4f) continue;
+		if (distFromCamera < kMinDistFromCamera) continue;
 
 		// カメラから敵に向かう方向ベクトル
 		Vector3 dirToEnemy = toEnemy * (1.0f / distFromCamera);
@@ -169,7 +176,7 @@ std::weak_ptr<MyLib::Transform> EnemyManager::ReGetNearEnemyTransform(const Vect
 		// カメラからの距離を取得
 		float distFromCamera = toEnemy.Length();
 		// カメラからの距離が一定より近い場合処理をしない
-		if (distFromCamera < 1e-4f) continue;
+		if (distFromCamera < kMinDistFromCamera) continue;
 
 		// カメラから敵に向かう方向ベクトル
 		Vector3 dirToEnemy = toEnemy * (1.0f / distFromCamera);

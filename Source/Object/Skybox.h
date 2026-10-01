@@ -1,5 +1,5 @@
-#pragma once
-#include "../../MyLib/GameObject.h"
+﻿#pragma once
+#include "../MyLib/GameObject.h"
 
 /// <summary>
 /// スカイボックスクラス

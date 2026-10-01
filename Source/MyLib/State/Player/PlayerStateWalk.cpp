@@ -1,4 +1,4 @@
-#include "PlayerStateWalk.h"
+﻿#include "PlayerStateWalk.h"
 #include "PlayerStateIdle.h"
 #include "PlayerStateRun.h"
 #include "PlayerStateAttack.h"
@@ -27,7 +27,8 @@ namespace
 	// アニメーション名
 	constexpr const std::wstring_view kWalkAnimName = L"Player|Walk";
 	constexpr const std::wstring_view kRunAnimName = L"Player|Run";
-	constexpr const std::wstring_view kGuardAnimName = L"Player|Sield_walk_left";
+	constexpr const std::wstring_view kGuardLeftAnimName = L"Player|Sield_walk_left";
+	constexpr const std::wstring_view kGuardRightAnimName = L"Player|Sield_walk_right";
 
 	// アニメーションの速度(割合)
 	constexpr float kAnimSpeed = 0.5f;
@@ -56,7 +57,15 @@ void MyLib::PlayerStateWalk::OnInit(PlayerController* owner)
 		auto pGuardCol = m_pGuardCol.lock();
 		pGuardCol->SetEnable(true);
 
-		animator->ChangeAnimation(kGuardAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		auto stick = input.GetXInputData();
+		if (stick.leftStick.x > 0.0f)
+		{
+			animator->ChangeAnimation(kGuardLeftAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		}
+		else
+		{
+			animator->ChangeAnimation(kGuardRightAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		}
 	}
 	else
 	{
@@ -135,7 +144,14 @@ void MyLib::PlayerStateWalk::OnUpdate()
 
 		auto animator = m_pAnimator.lock();
 
-		animator->ChangeAnimation(kGuardAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		if (stickData.leftStick.x > 0.0f)
+		{
+			animator->ChangeAnimation(kGuardLeftAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		}
+		else
+		{
+			animator->ChangeAnimation(kGuardRightAnimName, kAnimSpeed, kAnimBlendFrame, true);
+		}
 	}
 	else if (input.IsReleased("Guard"))
 	{

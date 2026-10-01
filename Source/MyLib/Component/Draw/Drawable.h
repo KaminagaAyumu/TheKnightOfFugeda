@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <cstdint>
 #include "../../Geometry/Vector3.h"
 #include "../Component.h"

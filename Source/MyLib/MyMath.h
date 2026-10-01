@@ -1,13 +1,21 @@
-#pragma once
+﻿#pragma once
 #include "../Geometry/Vector2Int.h"
+#include "../Geometry/Vector3.h"
 #include "DxLib.h"
 #include <cstdint>
 #include <cmath>
+#include <algorithm>
 
 namespace MyLib
 {
 	// 半円の角度
 	inline constexpr float kHalfCircleDegree = 180.0f;
+
+	// 値を加算する割合
+	inline constexpr float kParamAddRate = 0.2f;
+
+	// 表示用の値を現在の値に完全に合わせる際の差分の閾値
+	inline constexpr float kParamThreshold = 0.9f;
 
 	/// <summary>
 	/// 度数法を弧度法(ラジアン)に変換する
@@ -45,6 +53,56 @@ namespace MyLib
 	{
 		float diff = NormalizeAngle(to - from);
 		return from + diff * t;
+	}
+
+	/// <summary>
+	/// 指定の値に値をゆっくり近づける
+	/// </summary>
+	/// <param name="display">変数格納用の値</param>
+	/// <param name="target">指定の値</param>
+	inline void UpdateParam(int& display, int target)
+	{
+		// 加算する値を取得
+		int add = static_cast<int>((target - display) * kParamAddRate);
+
+		// 加算する値の割合が閾値を超えたら表示用の値を指定の値に合わせる
+		if (add <= kParamThreshold)
+		{
+			display = target;
+		}
+		else // 値を加算していく
+		{
+			display += add;
+		}
+		// 表示用の値が現在の値を超えないようにする
+		if (display > target)
+		{
+			display = target;
+		}
+	}
+
+	/// <summary>
+	/// 指定の値に値をゆっくり近づける(加算対象と減算対象を指定する)
+	/// </summary>
+	/// <param name="increase"></param>
+	/// <param name="decrease"></param>
+	/// <param name="target"></param>
+	inline void UpdateParamAdjustment(int& increase, int& decrease, int target)
+	{
+		// 加算する値を取得
+		int add = static_cast<int>((target - increase) * kParamAddRate);
+
+		// 加算する値の割合が閾値を超えたら表示用の値を指定の値に合わせる
+		if (add <= kParamThreshold)
+		{
+			increase = target;
+			decrease = 0;
+			return;
+		}
+
+		add = std::min(add, decrease);
+		increase += add;
+		decrease -= add;
 	}
 
 	/// <summary>

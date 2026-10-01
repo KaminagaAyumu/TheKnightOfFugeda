@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EnemyBase.h"
 #include "../../MyLib/GameObject.h"
 

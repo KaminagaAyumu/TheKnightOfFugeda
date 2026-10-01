@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../MyLib/GameObject.h"
 
 class EnemyBase : public MyLib::GameObject

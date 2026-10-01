@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Drawable2D.h"
 #include "../../Transform.h"
 #include "../../../../Geometry/Vector2.h"

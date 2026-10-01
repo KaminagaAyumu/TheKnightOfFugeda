@@ -1,4 +1,4 @@
-#include "Stage.h"
+﻿#include "Stage.h"
 #include "Ground.h"
 #include "Wall.h"
 #include "../../MyLib/ObjectManager.h"
@@ -47,7 +47,7 @@ void Stage::Init(int stageNo)
 		auto [pGroundCollider, pWallCollider] = terrain.ConvertTerrainColliders();
 
 		auto groundCol = m_pGround->GetComponent<MyLib::Collidable>().lock();
-		auto wallCol = m_pGround->GetComponent<MyLib::Collidable>().lock();
+		auto wallCol = m_pWall->GetComponent<MyLib::Collidable>().lock();
 
 		pGroundCollider->SetEnable(false);
 		//pWallCollider->SetEnable(false);

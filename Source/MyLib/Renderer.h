@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <memory>
 #include <list>
 #include <vector>
@@ -78,10 +78,13 @@ namespace MyLib
 		// 描画コンポーネントリスト
 		std::list<std::shared_ptr<MyLib::Drawable>> m_pDrawables;
 
+		// UIレイヤーの透明度の最大値(不透明)
+		static constexpr int kMaxUILayerAlpha = 255;
+
 		struct UILayerData
 		{
 			bool isActive = true;
-			int alpha = 255;
+			int alpha = kMaxUILayerAlpha;
 		};
 
 		std::vector<UILayerData> m_uiLayerDatas;

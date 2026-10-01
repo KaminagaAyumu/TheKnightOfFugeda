@@ -1,8 +1,16 @@
-#include "OctreeManager.h"
+﻿#include "OctreeManager.h"
 #include "MyMath.h"
 #include "OctreeCell.h"
 
-MyLib::OctreeManager::OctreeManager() : 
+namespace
+{
+	// 1つのセルが持つ子セルの数
+	constexpr uint32_t kChildCellNum = 8;
+	// モートン番号で1階層を表すのに使うビット数(x,y,zの3軸分)
+	constexpr uint32_t kMortonBitsPerLevel = 3;
+}
+
+MyLib::OctreeManager::OctreeManager() :
 	m_level(0),
 	m_cellCount(0)
 {
@@ -103,22 +111,23 @@ uint32_t MyLib::OctreeManager::GetCellIndex(const BoundingBox& worldAABB) const
 	uint32_t temp = xorResult;
 	while (temp > 0)
 	{
-		temp >>= 3;
+		temp >>= kMortonBitsPerLevel;
 		shift++;
 	}
 
 	uint32_t targetLevel = m_level - shift;
-	uint32_t cellMorton = mortonMax >> (shift * 3);
+	uint32_t cellMorton = mortonMax >> (shift * kMortonBitsPerLevel);
 
-	uint32_t offset = (Pow8(targetLevel) - 1) / 7;
+	// 1つ上の階層までのセルの総数(等比数列の和)
+	uint32_t offset = (Pow8(targetLevel) - 1) / (kChildCellNum - 1);
 
 	return offset + cellMorton;
 }
 
 uint32_t MyLib::OctreeManager::GetTotalCellCount(uint32_t level) const
 {
-	// レベルごとのセルの総数
-	return (Pow8(level + 1) - 1) / 7;
+	// レベルごとのセルの総数(等比数列の和)
+	return (Pow8(level + 1) - 1) / (kChildCellNum - 1);
 }
 
 void MyLib::OctreeManager::CreateCell(uint32_t index)
@@ -128,7 +137,7 @@ void MyLib::OctreeManager::CreateCell(uint32_t index)
 	{
 		m_pCells[index] = std::make_shared<MyLib::OctreeCell>();
 		if (index == 0) break;
-		index = (index - 1) / 8; // 親セルのインデックス
+		index = (index - 1) / kChildCellNum; // 親セルのインデックス
 	}
 }
 
@@ -176,9 +185,9 @@ void MyLib::OctreeManager::ScanTree(uint32_t cellIdx, std::vector<std::pair<std:
 	}
 
 	// 子セルへ再帰
-	for (uint32_t i = 0; i < 8; ++i)
+	for (uint32_t i = 0; i < kChildCellNum; ++i)
 	{
-		uint32_t childIdx = cellIdx * 8 + 1 + i;
+		uint32_t childIdx = cellIdx * kChildCellNum + 1 + i;
 		if (childIdx < m_cellCount && m_pCells[childIdx])
 		{
 			ScanTree(childIdx, pairs, stack);

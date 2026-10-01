@@ -1,4 +1,4 @@
-#include "BulletEnemyController.h"
+﻿#include "BulletEnemyController.h"
 #include "../../../State/Enemy/EnemyStateIdle.h"
 #include "../../../State/Enemy/EnemyStateFreeze.h"
 #include "../../../State/Enemy/EnemyStateSearch.h"
@@ -137,7 +137,7 @@ void MyLib::BulletEnemyController::Init(std::weak_ptr<MyLib::GameObject> parent)
 				{
 					if (!m_stateMachine.IsCheckState<MyLib::EnemyStateDead>())
 					{
-						m_stateMachine.ChangeState<MyLib::EnemyStateDamage>();
+						m_stateMachine.ChangeStateReset<MyLib::EnemyStateDamage>();
 						m_hp--;
 						soundManager.Play("Damage", 1.0f, true);
 						return;

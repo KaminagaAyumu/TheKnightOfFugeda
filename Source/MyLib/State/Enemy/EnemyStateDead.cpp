@@ -1,4 +1,4 @@
-#include "EnemyStateDead.h"
+﻿#include "EnemyStateDead.h"
 #include "../../GameObject.h"
 #include "../../Component/Controller/Enemy/EnemyController.h"
 #include "../../../MyLib/Component/Animator.h"

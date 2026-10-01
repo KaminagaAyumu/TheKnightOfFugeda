@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include "../StateBase.h"
 #include "../../../Utility/CSV/PlayerAttackResource.h"
+#include "../../../Geometry/Vector3.h"
 
 class AttackData;
 class Effect;
@@ -45,6 +46,16 @@ namespace MyLib
 
 		void PlayAttackEffect();
 
+		/// <summary>
+		/// 攻撃を行う向きを返す
+		/// </summary>
+		/// <returns></returns>
+		Vector3 GetAttackDir();
+
+		/// <summary>
+		/// 移動速度の更新を行う
+		/// </summary>
+		void UpdateMoveVelocity();
 	};
 
 }

@@ -1,4 +1,4 @@
-#include "BulletEnemy.h"
+﻿#include "BulletEnemy.h"
 #include "../../MyLib/Component/Rigidbody.h"
 #include "../../MyLib/Component/Animator.h"
 #include "../../MyLib/Component/Collision/Collidable.h"
@@ -7,12 +7,6 @@
 #include "../../MyLib/Component/Controller/Enemy/BulletEnemyController.h"
 #include <memory>
 #include <cassert>
-
-namespace
-{
-	// モデルのサイズ
-	const Vector3 kModelScale = { 0.01f, 0.01f, 0.01f };
-}
 
 BulletEnemy::BulletEnemy()
 {

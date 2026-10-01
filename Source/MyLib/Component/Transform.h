@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Component.h"
 #include "../../Geometry/Vector2Int.h"
 #include "../../Geometry/Vector3.h"

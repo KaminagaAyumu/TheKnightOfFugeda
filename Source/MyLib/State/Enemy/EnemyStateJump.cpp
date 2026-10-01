@@ -1,4 +1,4 @@
-#include "EnemyStateJump.h"
+﻿#include "EnemyStateJump.h"
 #include "EnemyStateAttack.h"
 #include "../../../MyLib/Component/Controller/Enemy/EnemyController.h"
 #include "../../../MyLib/Component/Transform.h"
@@ -18,6 +18,9 @@ namespace
 
 	// 移動するスピード
 	constexpr float kJumpSpeed = 0.1f;
+
+	// ジャンプの高さ(ジャンプ開始時の高さからの差)
+	constexpr float kJumpHeight = 2.0f;
 
 	// アニメーションの速度(割合)
 	constexpr float kAnimSpeed = 0.5f;
@@ -78,7 +81,7 @@ void MyLib::EnemyStateJump::OnUpdate()
 
 		pRigidbody->SetVelocity(Vector3::Up() * kJumpSpeed);
 
-		if (pTransform->GetPos().y >= m_defaultY + 2.0f)
+		if (pTransform->GetPos().y >= m_defaultY + kJumpHeight)
 		{
 			m_flow = JumpFlow::Falling;
 		}

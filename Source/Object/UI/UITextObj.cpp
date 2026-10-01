@@ -1,4 +1,4 @@
-#include "UITextObj.h"
+﻿#include "UITextObj.h"
 #include "../../MyLib/Component/Draw/UI/UIText.h"
 
 UITextObj::UITextObj()

@@ -1,4 +1,4 @@
-#include "GameScene.h"
+﻿#include "GameScene.h"
 #include "ResultScene.h"
 #include "PauseScene.h"
 #include "GameoverScene.h"
@@ -12,9 +12,12 @@
 #include "../Utility/CSV/EventResource.h"
 #include "../Object/Player/Player.h"
 #include "../Object/Enemy/EnemyManager.h"
+#include "../Object/Item/ItemManager.h"
 #include "../Object/Camera/PlayerCamera.h"
 #include "../Object/UI/LockOnMarkerUI.h"
 #include "../Object/UI/LifeUI.h"
+#include "../Object/UI/ParamUI.h"
+#include "../Object/UI/BoardUI.h"
 #include "../Object/Stage.h"
 #include "../Object/Skybox.h"
 #include "../MyLib/MyMath.h"
@@ -32,6 +35,9 @@
 #include "../Common/Event/EventControls.h"
 #include "../Common/Event/EventManager.h"
 #include "../Common/Event/EventStructs.h"
+#include "../Common/ComboCounter.h"
+#include "../Common/ScoreCounter.h"
+#include "../Common/ResultData.h"
 #include "DxLib.h"
 #include <cassert>
 
@@ -46,9 +52,21 @@ namespace
 	const Vector2Int kTelopPos = { Game::kScreenWidth / 2, Game::kScreenHeight / 2 };
 	const Vector2Int kTextPos = { Game::kScreenWidth / 2, 50 };
 
+	const Vector2Int kScoreTextPos = { Game::kScreenWidth - 200, 50 };
+
+	const Vector2Int kComboTextPos = { Game::kScreenWidth - 200, 130 };
+
 	const Vector3 kLightDir = { 0.0f,-1.5f,0.0f };
 	const Vector3 kShadowMapAreaMin = { -61.0f,-1.0f,-65.0f };
 	const Vector3 kShadowMapAreaMax = { 61.0f,20.0f,65.0f };
+
+	// ライトの環境光の色
+	const COLOR_F kLightAmbColor = { 10.0f, 10.0f, 10.0f, 10.0f };
+
+	// ゲーム開始時のカウントダウン関連
+	constexpr int kCountDownStartNum = 3; // カウントダウンを始める数字
+	constexpr int kCountDownFrameParCount = Game::kFrameRate; // 1カウントにかけるフレーム数
+	constexpr int kCountDownStartHoldFrame = 45; // "START!"を表示し続けるフレーム数
 
 	// ロックオンを行う最大距離
 	constexpr float kLockOnMaxDistance = 15.0f;
@@ -58,6 +76,38 @@ namespace
 	const Vector2Int kLifeUILeft = { 70, 60 };
 
 	constexpr int kLifeUIMargin = 80;
+
+	// 敵を倒した際に加算するスコア
+	constexpr int kEnemyScore = 1000;
+	// アイテムを獲得した際に加算するスコア
+	constexpr int kItemScore = 500;
+
+	// 操作説明のボード関連(チュートリアルステージでのみ表示する)
+	const Vector2Int kGuideBoardSize = { 470, 390 }; // 見出しと操作説明8行分が収まるサイズ
+	constexpr int kGuideBoardMargin = 20; // 画面の端からボードまでの余白
+	// 画面の右下に表示する
+	const Vector2Int kGuideBoardPos = { Game::kScreenWidth - kGuideBoardSize.x / 2 - kGuideBoardMargin, Game::kScreenHeight - kGuideBoardSize.y / 2 - kGuideBoardMargin };
+
+	// 操作説明の1行分の内容
+	struct GuideItem
+	{
+		const wchar_t* input;	// 操作(行の左側に表示する)
+		const wchar_t* action;	// 行動(行の右側に表示する)
+	};
+
+	// 操作説明に表示する項目(上から順に表示する)
+	const GuideItem kGuideItems[] =
+	{
+		{ L"左スティック", L"移動" },
+		{ L"右スティック", L"カメラ視点操作" },
+		{ L"Aボタン", L"攻撃" },
+		{ L"Bボタン", L"ローリング" },
+		{ L"Xボタン", L"カメラリセット" },
+		{ L"RB", L"盾を構える" },
+		{ L"LT(敵の近くで)", L"ロックオン" },
+		{ L"STARTボタン", L"ポーズ" },
+	};
+
 
 	// ファイルを読み込む際のパスの最大サイズ(文字数)
 	constexpr size_t kFilePathMax = 256;
@@ -89,9 +139,12 @@ void GameScene::Init()
 
 	m_pPlayer->Init();
 
-	m_enemyManager = std::make_shared<EnemyManager>();
-	m_enemyManager->Init(m_stageNo);
-	m_enemyManager->CreateEnemy(m_pPlayer);
+	m_pEnemyManager = std::make_shared<EnemyManager>();
+	m_pEnemyManager->Init(m_stageNo);
+	m_pEnemyManager->CreateEnemy(m_pPlayer);
+
+	m_pItemManager = std::make_shared<ItemManager>();
+	m_pItemManager->Init(m_stageNo);
 
 	m_pStage = std::make_shared<Stage>();
 
@@ -106,18 +159,26 @@ void GameScene::Init()
 	m_pCamera->Init();
 	m_pCamera->SetTarget(m_pPlayer->GetComponent<MyLib::Transform>());
 
-	PlayerAttackResource resource;
-	if (resource.Load(L"Data/File/CSV/test.csv"))
-	{
-		resource.ConvertAttackData();
-	}
-
 	if (m_textResources.Load(L"Data/File/CSV/text_data.csv"))
 	{
 		m_textResources.ConvertTextData();
 	}
 
-	m_pUITelop = MyLib::ObjectFactory::CretateUITelop(kTelopPos, MyLib::Renderer::FontType::Midium);
+	// チュートリアルステージでのみ操作説明を表示する
+	// UIは生成した順に描画されるため、テロップが操作説明の上に表示されるようにテロップより先に生成する
+	if (m_stageNo == Game::kTutorialStageNo)
+	{
+		m_pGuideBoard = std::make_shared<BoardUI>();
+		m_pGuideBoard->Init(kGuideBoardPos, kGuideBoardSize);
+		m_pGuideBoard->SetBackGround(FileManager::GetInstance().GetImage(L"Data/File/Image/dialog_back_green.png", false));
+		m_pGuideBoard->SetTitle(L"操作説明");
+		for (const auto& item : kGuideItems)
+		{
+			m_pGuideBoard->AddParam(item.input, item.action);
+		}
+	}
+
+	m_pUITelop =MyLib::ObjectFactory::CretateUITelop(kTelopPos, MyLib::Renderer::FontType::Midium);
 	m_pUITelop->Init();
 	m_pTelop = m_pUITelop->GetComponent<MyLib::UITelop>();
 
@@ -128,6 +189,14 @@ void GameScene::Init()
 	m_pUIText = MyLib::ObjectFactory::CreateUIText(kTextPos, MyLib::Renderer::FontType::Large);
 	m_pUIText->Init();
 	m_pText = m_pUIText->GetComponent<MyLib::UIText>();
+
+	m_pUIComboText = MyLib::ObjectFactory::CreateUICombo(kComboTextPos, MyLib::Renderer::FontType::Large);
+	m_pUIComboText->Init();
+	m_pComboText = m_pUIComboText->GetComponent<MyLib::UICombo>();
+
+	m_pScoreUI = std::make_shared<ParamUI>();
+	m_pScoreUI->Init(kScoreTextPos);
+	m_pScoreUI->SetText(L"スコア");
 
 	m_pLockOnMarker = std::make_shared<LockOnMarkerUI>();
 
@@ -140,6 +209,10 @@ void GameScene::Init()
 	SetEventFunc();
 
 	m_pEventManager = std::make_unique<EventManager>();
+
+	m_pComboCounter = std::make_unique<ComboCounter>();
+
+	m_pScoreCounter = std::make_unique<ScoreCounter>();
 
 	wchar_t eventFilePath[kFilePathMax];
 	std::swprintf(eventFilePath, kFilePathMax, L"Data/File/CSV/Event/stage%d_data.csv", m_stageNo);
@@ -158,7 +231,7 @@ void GameScene::Init()
 
 	SetLightDirection(kLightDir);
 	COLOR_F color = GetLightAmbColor();
-	SetLightAmbColor(GetColorF(10.0f, 10.0f, 10.0f, 10.0f));
+	SetLightAmbColor(kLightAmbColor);
 	MyLib::Renderer::GetInstance().SetShadowMapLightDir(kLightDir);
 	MyLib::Renderer::GetInstance().SetShadowMapArea(kShadowMapAreaMin, kShadowMapAreaMax);
 
@@ -167,12 +240,17 @@ void GameScene::Init()
 	soundManager.LoadSoundClip("SelectBGM", L"Data/File/Sound/BGM/select.mp3", SoundBus::BGM, 1.0f, true);
 	soundManager.LoadSoundClip("GameBGM", L"Data/File/Sound/BGM/stage1.ogg", SoundBus::BGM, 1.0f, true);
 	soundManager.LoadSoundClip("ResultBGM", L"Data/File/Sound/BGM/result.mp3", SoundBus::BGM, 1.0f, true);
+	soundManager.LoadSoundClip("GameoverBGM", L"Data/File/Sound/BGM/gameover.mp3", SoundBus::BGM, 1.0f, true);
 	soundManager.LoadSoundClip("OK", L"Data/File/Sound/SE/ok.mp3", SoundBus::SE, 1.0f, false);
 	soundManager.LoadSoundClip("Cursor", L"Data/File/Sound/SE/cursor.mp3", SoundBus::SE, 1.0f, false);
 	soundManager.LoadSoundClip("Open", L"Data/File/Sound/SE/open.mp3", SoundBus::SE, 1.0f, false);
 	soundManager.LoadSoundClip("LockOn", L"Data/File/Sound/SE/lock_on.mp3", SoundBus::SE, 1.0f, false);
 	soundManager.LoadSoundClip("TargetChange", L"Data/File/Sound/SE/target_change.mp3", SoundBus::SE, 1.0f, false);
 	soundManager.LoadSoundClip("Pause", L"Data/File/Sound/SE/pause.mp3", SoundBus::SE, 1.0f, false);
+	// 暫定的な実装
+	// 敵やアイテムがゲームシーン内から全てなくなった場合に、下記のSEが再生されない場合があるためゲームシーン側でもロードする
+	soundManager.LoadSoundClip("Die", L"Data/File/Sound/SE/enemy_die.mp3", SoundBus::SE, 1.0f, false);
+	soundManager.LoadSoundClip("Coin", L"Data/File/Sound/SE/coin_get.mp3", SoundBus::SE, 1.0f, false);
 }
 
 void GameScene::End()
@@ -181,8 +259,10 @@ void GameScene::End()
 	m_pPlayer->End();
 	OutputDebugStringA("End: Player done enemy start\n");
 
-	m_enemyManager->End();
+	m_pEnemyManager->End();
 	OutputDebugStringA("End: enemy done stage start\n");
+
+	m_pItemManager->End();
 
 	m_pStage->End();
 	OutputDebugStringA("End: stage done camera start\n");
@@ -199,6 +279,13 @@ void GameScene::End()
 	m_pUIText->End();
 	OutputDebugStringA("End: UItext done skybox start\n");
 
+	m_pScoreUI->End();
+
+	if (m_pGuideBoard)
+	{
+		m_pGuideBoard->End();
+	}
+
 	m_pSkybox->End();
 	OutputDebugStringA("End: skybox done \n");
 
@@ -207,12 +294,15 @@ void GameScene::End()
 	soundManager.DeleteSoundClip("SelectBGM");
 	soundManager.DeleteSoundClip("GameBGM");
 	soundManager.DeleteSoundClip("ResultBGM");
+	soundManager.DeleteSoundClip("GameoverBGM");
 	soundManager.DeleteSoundClip("OK");
 	soundManager.DeleteSoundClip("Cursor");
 	soundManager.DeleteSoundClip("Open");
 	soundManager.DeleteSoundClip("LockOn");
 	soundManager.DeleteSoundClip("TargetChange");
 	soundManager.DeleteSoundClip("Pause");
+	soundManager.DeleteSoundClip("Die");
+	soundManager.DeleteSoundClip("Coin");
 }
 
 void GameScene::Update()
@@ -250,10 +340,18 @@ void GameScene::FadeOutUpdate()
 	m_frameCount++;
 	if (m_frameCount >= kFadeInterval)
 	{
-		MyLib::ObjectManager::GetInstance().End();
 		//m_sceneController.ChangeScene(std::make_shared<ResultScene>(m_sceneController, m_gameTime));
 		SoundManager::GetInstance().CrossFadeBGM("ResultBGM", 1.0f);
-		m_sceneController.RequestChangeScene(std::make_shared<LoadingScene>([&controller = m_sceneController, this] { return std::make_shared<ResultScene>(controller, m_gameTime, m_stageNo); }, L"Data/File/CSV/Resource/result_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+		// リザルトシーンに送るデータを取得する
+		std::shared_ptr<ResultData> resultData = std::make_shared<ResultData>();
+		resultData->stageNo = m_stageNo;						// ステージ番号
+		resultData->score = m_pScoreCounter->GetScore();		// スコア
+		resultData->clearTime = m_gameTime;						// クリアタイム
+		resultData->life = m_pPlayer->GetLife();				// 残り体力
+		resultData->maxCombo = m_pComboCounter->GetMaxCount();	// 最大コンボ
+		// オブジェクト管理クラスに終了を通知する
+		MyLib::ObjectManager::GetInstance().End();
+		m_sceneController.RequestChangeScene(std::make_shared<LoadingScene>([&controller = m_sceneController, resultData, this] { return std::make_shared<ResultScene>(controller, resultData); }, L"Data/File/CSV/Resource/result_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		return;
 	}
 }
@@ -264,6 +362,7 @@ void GameScene::NormalUpdate()
 
 	if (m_pPlayer->IsDied())
 	{
+		SoundManager::GetInstance().CrossFadeBGM("GameoverBGM", 1.0f);
 		m_sceneController.PushScene(std::make_shared<GameoverScene>(m_sceneController, m_stageNo));
 		return;
 	}
@@ -288,7 +387,7 @@ void GameScene::NormalUpdate()
 
 	if (auto text = m_pText.lock())
 	{
-		text->SetText(L"Time : " + std::to_wstring(m_gameTime / 60));
+		text->SetText(L"Time : " + std::to_wstring(m_gameTime / Game::kFrameRate));
 	}
 
 	//m_pCamera->SetTarget(m_pPlayer->GetComponent<MyLib::Transform>());
@@ -303,7 +402,7 @@ void GameScene::NormalUpdate()
 	// Lトリガーが押されたら
 	if (input.IsTriggeredXInput(false))
 	{
-		auto target = m_enemyManager->GetNearEnemyTransform(m_pPlayer->GetPos(), m_pCamera->GetEyePos(), m_pCamera->GetFovDegree());
+		auto target = m_pEnemyManager->GetNearEnemyTransform(m_pPlayer->GetPos(), m_pCamera->GetEyePos(), m_pCamera->GetFovDegree());
 		if (auto pTarget = target.lock())
 		{
 			SoundManager::GetInstance().Play("LockOn", 1.0f, true);
@@ -327,7 +426,7 @@ void GameScene::NormalUpdate()
 			{
 				bool isLeft = stickData.rightStick.x <= 0.0f;
 
-				auto newTarget = m_enemyManager->ReGetNearEnemyTransform(m_pPlayer->GetPos(), m_pCamera->GetEyePos(), m_pCamera->GetFovDegree(), pLockOnTarget->GetPos(), isLeft);
+				auto newTarget = m_pEnemyManager->ReGetNearEnemyTransform(m_pPlayer->GetPos(), m_pCamera->GetEyePos(), m_pCamera->GetFovDegree(), pLockOnTarget->GetPos(), isLeft);
 
 				// 新たなターゲットが見つかった場合新しいものに変更する
 				if (auto pNewTarget = newTarget.lock())
@@ -381,8 +480,41 @@ void GameScene::NormalUpdate()
 		m_pLockOnMarker->Hide();
 	}
 
+	m_pEnemyManager->Update();
 
-	m_enemyManager->Update();
+	m_pItemManager->Update();
+
+	for (int i = 0; i < m_pEnemyManager->GetDeadCountThisFrame(); ++i)
+	{
+		m_pComboCounter->AddKill();
+		m_pScoreCounter->AddScore(m_pComboCounter->GetCount() * kEnemyScore);
+	}
+
+	for (int i = 0; i < m_pItemManager->GetAcquisitionCountThisFrame(); ++i)
+	{
+		m_pScoreCounter->AddScore(kItemScore);
+	}
+
+	m_pComboCounter->Update();
+
+	m_pScoreCounter->Update();
+
+	if (auto combo = m_pComboText.lock())
+	{
+		combo->SetText(std::to_wstring(m_pComboCounter->GetCount()) + L"Combo!!");
+	
+		if (m_pComboCounter->GetRemainRate() > 0.0f)
+		{
+			combo->SetActive(true);
+			combo->SetParam(m_pComboCounter->GetCount(), m_pComboCounter->GetRemainRate());
+		}
+		else
+		{
+			combo->SetActive(false);
+		}
+	}
+
+	m_pScoreUI->SetParam(m_pScoreCounter->GetDisplayedScore());
 }
 
 void GameScene::FadeDraw() const
@@ -418,7 +550,12 @@ void GameScene::SetEventFunc()
 
 	m_pEventSensors->isAllEnemyDeadFunc = [this]()
 		{
-			return m_enemyManager->IsEnemyDeadAll();
+			return m_pEnemyManager->IsEnemyDeadAll();
+		};
+
+	m_pEventSensors->isAllItemGetFunc = [this]()
+		{
+			return m_pItemManager->IsItemGetAll();
 		};
 
 	m_pEventControls->showTextFunc = [this](const std::wstring& id)
@@ -435,7 +572,7 @@ void GameScene::SetEventFunc()
 			// カウントダウンのテキストを始めるようにしたい
 			auto pCountDown = m_pCountDown.lock();
 			if (!pCountDown) return;
-			pCountDown->StartCountDown(3, 60, 45);
+			pCountDown->StartCountDown(kCountDownStartNum, kCountDownFrameParCount, kCountDownStartHoldFrame);
 		};
 
 	m_pEventControls->setPlayerCanMoveFunc = [this](bool canMove)
@@ -449,7 +586,7 @@ void GameScene::SetEventFunc()
 
 	m_pEventControls->setEnemyCanActFunc = [this](bool canAct)
 		{
-			m_enemyManager->SetCanAct(canAct);
+			m_pEnemyManager->SetCanAct(canAct);
 		};
 
 	m_pEventControls->goToClearSceneFunc = [this]()

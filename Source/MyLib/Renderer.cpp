@@ -1,4 +1,4 @@
-#include "Renderer.h"
+﻿#include "Renderer.h"
 #include "../Common/Effect/EffectManager.h"
 #include <cassert>
 

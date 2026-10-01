@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <functional>
 #include <string>
 
@@ -15,4 +15,7 @@ struct EventSensors
 
 	// 敵をすべて倒したかどうかの関数
 	std::function<bool()> isAllEnemyDeadFunc;
+
+	// アイテムをすべて取ったかどうかの関数
+	std::function<bool()> isAllItemGetFunc;
 };

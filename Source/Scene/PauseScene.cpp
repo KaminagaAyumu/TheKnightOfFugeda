@@ -1,4 +1,4 @@
-#include "PauseScene.h"
+﻿#include "PauseScene.h"
 #include "GameScene.h"
 #include "TitleScene.h"
 #include "SelectScene.h"
@@ -9,6 +9,7 @@
 #include "../MyLib/ObjectFactory.h"
 #include "../MyLib/ObjectManager.h"
 #include "../Common/Effect/EffectManager.h"
+#include "../Common/Sound/SoundManager.h"
 #include "DxLib.h"
 
 namespace
@@ -72,6 +73,14 @@ void PauseScene::Init()
 	MyLib::Physics::GetInstance().StopUpdate();
 
 	EffectManager::GetInstance().StopUpdate();
+
+	auto& soundManager = SoundManager::GetInstance();
+	soundManager.LoadSoundClip("TitleBGM", L"Data/File/Sound/BGM/title.ogg", SoundBus::BGM, 1.0f, true);
+	soundManager.LoadSoundClip("SelectBGM", L"Data/File/Sound/BGM/select.mp3", SoundBus::BGM, 1.0f, true);
+	soundManager.LoadSoundClip("GameBGM", L"Data/File/Sound/BGM/stage1.ogg", SoundBus::BGM, 1.0f, true);
+	soundManager.LoadSoundClip("OK", L"Data/File/Sound/SE/ok.mp3", SoundBus::SE, 1.0f, false);
+	soundManager.LoadSoundClip("Cursor", L"Data/File/Sound/SE/cursor.mp3", SoundBus::SE, 1.0f, false);
+	soundManager.LoadSoundClip("Open", L"Data/File/Sound/SE/open.mp3", SoundBus::SE, 1.0f, false);
 }
 
 void PauseScene::End()
@@ -83,6 +92,14 @@ void PauseScene::End()
 	MyLib::Physics::GetInstance().StartUpdate();
 
 	EffectManager::GetInstance().StartUpdate();
+
+	auto& soundManager = SoundManager::GetInstance();
+	soundManager.DeleteSoundClip("TitleBGM");
+	soundManager.DeleteSoundClip("SelectBGM");
+	soundManager.DeleteSoundClip("GameBGM");
+	soundManager.DeleteSoundClip("OK");
+	soundManager.DeleteSoundClip("Cursor");
+	soundManager.DeleteSoundClip("Open");
 }
 
 void PauseScene::Update()
@@ -114,6 +131,20 @@ void PauseScene::FadeOutUpdate()
 	if (m_frameCount >= kFadeInterval)
 	{
 		auto selectList = m_pSelectList.lock();
+
+		if (selectList->IsMatchedCursor(L"ポーズ解除"))
+		{
+			// BGMはそのままなので何もしない
+		}
+		else if (selectList->IsMatchedCursor(L"ステージセレクトに戻る"))
+		{
+			SoundManager::GetInstance().CrossFadeBGM("SelectBGM", 1.0f);
+		}
+		else if (selectList->IsMatchedCursor(L"タイトルに戻る"))
+		{
+			SoundManager::GetInstance().CrossFadeBGM("TitleBGM", 1.0f);
+		}
+
 		selectList->TriggerSelect();
 		return;
 	}
@@ -125,12 +156,14 @@ void PauseScene::NormalUpdate()
 
 	if (input.IsTriggered("Up"))
 	{
+		SoundManager::GetInstance().Play("Cursor", 1.0f, true);
 		auto selectList = m_pSelectList.lock();
 		selectList->MoveCursor(-kCursorMoveIndex);
 	}
 
 	if (input.IsTriggered("Down"))
 	{
+		SoundManager::GetInstance().Play("Cursor", 1.0f, true);
 		auto selectList = m_pSelectList.lock();
 		selectList->MoveCursor(kCursorMoveIndex);
 	}
@@ -138,10 +171,10 @@ void PauseScene::NormalUpdate()
 
 	if (input.IsTriggered("OK"))
 	{
+		// 決定した際のSEを再生
+		SoundManager::GetInstance().Play("OK", 1.0f, false);
 		m_update = &PauseScene::FadeOutUpdate;
 		m_draw = &PauseScene::FadeDraw;
-
-		//auto selectList = m_pSelectList.lock();
 		return;
 	}
 }

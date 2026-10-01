@@ -1,4 +1,4 @@
-#include "SkullEnemyController.h"
+﻿#include "SkullEnemyController.h"
 #include "../../../State/Enemy/EnemyStateIdle.h"
 #include "../../../State/Enemy/EnemyStateFreeze.h"
 #include "../../../State/Enemy/EnemyStateSearch.h"
@@ -198,7 +198,7 @@ void MyLib::SkullEnemyController::Init(std::weak_ptr<MyLib::GameObject> parent)
 						}
 						else
 						{
-							m_stateMachine.ChangeState<MyLib::EnemyStateDamage>();
+							m_stateMachine.ChangeStateReset<MyLib::EnemyStateDamage>();
 							m_hp--;
 						}
 						soundManager.Play("Damage", 1.0f, true);
@@ -216,7 +216,7 @@ void MyLib::SkullEnemyController::Init(std::weak_ptr<MyLib::GameObject> parent)
 						}
 						else
 						{
-							m_stateMachine.ChangeState<MyLib::EnemyStateDamage>();
+							m_stateMachine.ChangeStateReset<MyLib::EnemyStateDamage>();
 							return;
 						}
 					}

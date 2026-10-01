@@ -1,4 +1,4 @@
-#include "Drawable2D.h"
+﻿#include "Drawable2D.h"
 
 MyLib::Drawable2D::Drawable2D(DrawLayer layer) : 
 	Drawable(layer),

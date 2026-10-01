@@ -1,19 +1,28 @@
-#include "UICountDown.h"
+﻿#include "UICountDown.h"
 #include "../../../GameObject.h"
 #include "../../../Renderer.h"
 #include "../../../../Common/Sound/SoundManager.h"
 #include <string>
 #include <cassert>
 
-MyLib::UICountDown::UICountDown(DrawLayer layer) : 
+namespace
+{
+	constexpr unsigned int kDefaultTextColor = 0xffffff;	// 文字色の初期値
+	constexpr int kDefaultFrameParCount = 60;	// 1カウントにかけるフレーム数の初期値
+	constexpr int kDefaultStartHoldFrame = 60;	// "START!"を表示し続けるフレーム数の初期値
+
+	constexpr int kMaxAlpha = 255;	// 透明度の最大値(不透明)
+}
+
+MyLib::UICountDown::UICountDown(DrawLayer layer) :
 	Drawable2D(layer),
 	m_phase(CountPhase::Idle),
 	m_fontHandle(-1),
-	m_textColor(0xffffff),
+	m_textColor(kDefaultTextColor),
 	m_currentCount(0),
-	m_frameParCount(60),
+	m_frameParCount(kDefaultFrameParCount),
 	m_frameCount(0),
-	m_startHoldFrame(60),
+	m_startHoldFrame(kDefaultStartHoldFrame),
 	m_isFinished(true),
 	m_isAlive(true)
 {
@@ -107,6 +116,7 @@ void MyLib::UICountDown::End()
 	soundManager.DeleteSoundClip("Ready"); // カウントダウン時
 	soundManager.DeleteSoundClip("Go"); // スタート時のSE
 
+	Renderer::GetInstance().Exit(shared_from_this());
 }
 
 void MyLib::UICountDown::Draw() const
@@ -129,8 +139,8 @@ void MyLib::UICountDown::Draw() const
 	const float fadeOpacity = GetFadeAlphaRate();
 	const double scale = static_cast<double>(GetAppearRate());
 
-	const int finalAlpha = static_cast<int>(255 * fadeOpacity);
-	const bool needBlend = finalAlpha != 255;
+	const int finalAlpha = static_cast<int>(kMaxAlpha * fadeOpacity);
+	const bool needBlend = finalAlpha != kMaxAlpha;
 	if (needBlend) SetDrawBlendMode(DX_BLENDMODE_ALPHA, finalAlpha);
 
 	const int x = pos.x - static_cast<int>(textW * scale) / 2;

@@ -1,6 +1,7 @@
 #include "LifeUI.h"
 #include "../../Utility/File/FileManager.h"
 #include "../../MyLib/ObjectFactory.h"
+#include "../../MyLib/Component/Transform.h"
 
 namespace
 {

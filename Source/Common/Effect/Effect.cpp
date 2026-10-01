@@ -1,4 +1,4 @@
-#include "Effect.h"
+﻿#include "Effect.h"
 #include "EffekseerForDXLib.h"
 
 Effect::Effect() : 
@@ -55,7 +55,7 @@ void Effect::SetPos(const Vector3& pos)
 void Effect::SetRotation(Quaternion rotation)
 {
 	Vector3 eulerRotation = rotation.ToEuler();
-	SetRotationPlayingEffekseer3DEffect(m_effectHandle, rotation.x, rotation.y, rotation.z);
+	SetRotationPlayingEffekseer3DEffect(m_effectHandle, eulerRotation.x, eulerRotation.y, eulerRotation.z);
 }
 
 bool Effect::IsAlive() const

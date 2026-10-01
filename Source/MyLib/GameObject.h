@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../Geometry/Vector3.h"
 #include "Component/Component.h"
 #include <memory>
@@ -21,6 +21,7 @@ namespace MyLib
 		{
 			Player,		// プレイヤー
 			Enemy,		// 敵
+			Item,		// アイテム
 			Projectile,	// 飛び道具
 			UI,			// UI
 			Camera,		// カメラ

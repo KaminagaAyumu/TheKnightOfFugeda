@@ -1,4 +1,4 @@
-#include "Animator.h"
+﻿#include "Animator.h"
 #include "Draw/Drawable3D.h"
 #include "../GameObject.h"
 #include "../../Main/Application.h"

@@ -1,9 +1,26 @@
-#include "LoadingScene.h"
+﻿#include "LoadingScene.h"
 #include "SceneController.h"
 #include "../Utility/Game.h"
 #include "../Utility/CSV/ResourceManifestData.h"
+#include "../Geometry/Vector2Int.h"
 #include "DxLib.h"
 #include <cassert>
+
+namespace
+{
+	// ロード進捗ゲージの大きさ
+	const Vector2Int kLoadingGaugeSize = { 640, 100 };
+	// ロード進捗ゲージの左端のX座標(画面の左右中央に配置する)
+	const int kLoadingGaugeLeft = (Game::kScreenWidth - kLoadingGaugeSize.x) / 2;
+	constexpr unsigned int kFillColor = 0xffd700;
+	constexpr unsigned int kFrameColor = 0xffffff; // ゲージの枠の色
+
+	constexpr unsigned int kTextColor = 0xffffff; // 文字色
+	constexpr int kTextOffsetY = 70; // 画面中央から文字までのY方向のずらし量
+	constexpr int kProgressTextOffsetX = 50; // 画面中央から進捗率の文字までのX方向のずらし量
+
+	constexpr float kPercentRate = 100.0f; // 進捗率(0～1)を百分率に変換する値
+}
 
 LoadingScene::LoadingScene(std::function<std::shared_ptr<SceneBase>()> m_nextSceneFactory, std::wstring filePath, SceneController& controller, TransitionType transitionType) :
 	SceneBase(controller),
@@ -80,6 +97,14 @@ void LoadingScene::Draw() const
 {
 	// ローディング画面の描画処理をここに追加する
 	// 例: "Loading..."と表示する
-	DrawString(100, 100, L"Loading...", GetColor(255, 255, 255));
-	DrawFormatString(100, 120, 0xffffff, L"%f パーセント", FileManager::GetInstance().GetLoadProgress() * 100.0f);
+	const int textY = Game::kScreenHeight / 2 - kTextOffsetY;
+	const int gaugeTop = Game::kScreenHeight / 2 - kLoadingGaugeSize.y / 2;
+	const int gaugeBottom = Game::kScreenHeight / 2 + kLoadingGaugeSize.y / 2;
+
+	DrawString(kLoadingGaugeLeft, textY, L"Loading...", kTextColor);
+	DrawFormatString(Game::kScreenWidth / 2 - kProgressTextOffsetX, textY, kTextColor, L"%.0f％", FileManager::GetInstance().GetLoadProgress() * kPercentRate);
+
+	DrawBox(kLoadingGaugeLeft, gaugeTop, kLoadingGaugeLeft + kLoadingGaugeSize.x * (FileManager::GetInstance().GetLoadProgress()), gaugeBottom, kFillColor, true);
+	DrawBox(kLoadingGaugeLeft, gaugeTop, kLoadingGaugeLeft + kLoadingGaugeSize.x, gaugeBottom, kFrameColor, false);
+
 }

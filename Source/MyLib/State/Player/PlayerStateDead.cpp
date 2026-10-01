@@ -1,4 +1,4 @@
-#include "PlayerStateDead.h"
+﻿#include "PlayerStateDead.h"
 #include "PlayerStateDie.h"
 #include "../../../MyLib/Component/Controller/Player/PlayerController.h"
 #include "../../../MyLib/Component/Animator.h"

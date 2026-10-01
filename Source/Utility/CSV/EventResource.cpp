@@ -1,5 +1,14 @@
-#include "EventResource.h"
+﻿#include "EventResource.h"
 #include "../MyLib/MyString.h"
+
+namespace
+{
+	// CSVの列番号
+	constexpr int kTriggerColumn = 0;	// イベントが始まる条件
+	constexpr int kActionColumn = 1;	// 行われるイベント
+	constexpr int kParamColumn = 2;	// テキストIDなどのパラメータ
+	constexpr int kBoolParamColumn = 3;	// bool型のパラメータ(0以外でtrue)
+}
 
 void EventResource::ConvertEventData()
 {
@@ -9,10 +18,10 @@ void EventResource::ConvertEventData()
 	for (size_t i = 0; i < size; ++i)
 	{
 				// データを読み込む
-		Events::TriggerType trigger = ToTriggerType(Read<std::wstring>(static_cast<int>(i), 0));
-		Events::ActionType action = ToActionType(Read<std::wstring>(static_cast<int>(i), 1));
-		std::wstring param = Read<std::wstring>(static_cast<int>(i), 2);
-		bool boolParam = Read<int>(static_cast<int>(i), 3) != 0;
+		Events::TriggerType trigger = ToTriggerType(Read<std::wstring>(static_cast<int>(i), kTriggerColumn));
+		Events::ActionType action = ToActionType(Read<std::wstring>(static_cast<int>(i), kActionColumn));
+		std::wstring param = Read<std::wstring>(static_cast<int>(i), kParamColumn);
+		bool boolParam = Read<int>(static_cast<int>(i), kBoolParamColumn) != 0;
 		// イベントデータを作成
 		Events::EventData data;
 		data.trigger = trigger;
@@ -43,6 +52,10 @@ Events::TriggerType EventResource::ToTriggerType(std::wstring string)
 	else if (string == L"AllEnemyDead")
 	{
 		triggerType = Events::TriggerType::AllEnemyDead;
+	}
+	else if (string == L"AllItemGet")
+	{
+		triggerType = Events::TriggerType::AllItemGet;
 	}
 	else
 	{

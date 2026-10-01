@@ -1,4 +1,4 @@
-#include "EnemyStateFreeze.h"
+﻿#include "EnemyStateFreeze.h"
 #include "../../../MyLib/Component/Controller/Enemy/EnemyController.h"
 #include "../../../MyLib/Component/Animator.h"
 #include <string>

@@ -1,19 +1,21 @@
-#include "ObjectFactory.h"
+﻿#include "ObjectFactory.h"
 #include "ObjectManager.h"
 #include "GameObject.h"
 #include "../../Object/Player/Player.h"
 #include "../../Object/Enemy/EnemyBase.h"
-#include "../../Object/Enemy/BulletEnemy.h" // 継承先　後で消す
-#include "../../Object/Enemy/SkullEnemy.h" // 継承先　後で消す
-#include "../../Object/Projectile/EnemyBullet.h" // 継承先　後で消す
-#include "../../Object/UI/UIImageObj.h" // 継承先　後で消す
-#include "../../Object/UI/UICountDownObj.h" // 継承先　後で消す
-#include "../../Object/UI/UISelectListObj.h" // 継承先　後で消す
-#include "../../Object/UI/UITelopObj.h" // 継承先　後で消す
-#include "../../Object/UI/UITextObj.h" // 継承先　後で消す
+#include "../../Object/Enemy/BulletEnemy.h"
+#include "../../Object/Enemy/SkullEnemy.h"
+#include "../../Object/Item/Item.h"
+#include "../../Object/Projectile/EnemyBullet.h"
+#include "../../Object/UI/UIImageObj.h"
+#include "../../Object/UI/UICountDownObj.h"
+#include "../../Object/UI/UISelectListObj.h"
+#include "../../Object/UI/UITelopObj.h"
+#include "../../Object/UI/UITextObj.h"
+#include "../../Object/UI/UIComboObj.h"
 #include "../../Object/Stage.h"
 #include "../../Object/Skybox.h"
-#include "../../Object/Camera/PlayerCamera.h"  // 継承先　後で消す
+#include "../../Object/Camera/PlayerCamera.h"
 #include "Component/Rigidbody.h"
 #include "Component/Collision/Collidable.h"
 #include "Component/Draw/Drawable3D.h"
@@ -22,6 +24,7 @@
 #include "Component/Draw/UI/UITelop.h"
 #include "Component/Draw/UI/UICountDown.h"
 #include "Component/Draw/UI/UIText.h"
+#include "Component/Draw/UI/UICombo.h"
 
 std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreatePlayer()
 {
@@ -58,6 +61,17 @@ std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateEnemy(EnemyManage
     MyLib::ObjectManager::GetInstance().AddObject(pEnemy);
 
     return pEnemy;
+}
+
+std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateItem()
+{
+    std::shared_ptr<Item> pItem;
+
+    pItem = std::make_shared<Item>();
+
+    MyLib::ObjectManager::GetInstance().AddObject(pItem);
+
+    return pItem;
 }
 
 std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateSkybox()
@@ -177,7 +191,7 @@ std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateUICountDown(const
 
 std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateUIText(const Vector2Int& pos, MyLib::Renderer::FontType type)
 {
-    // UIテロップを生成
+    // UIテキストを生成
     std::shared_ptr<UITextObj> pUIText = std::make_shared<UITextObj>();
 
     auto pTransform = pUIText->GetComponent<MyLib::Transform>();
@@ -193,4 +207,24 @@ std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateUIText(const Vect
     MyLib::ObjectManager::GetInstance().AddObject(pUIText);
 
     return pUIText;
+}
+
+std::shared_ptr<MyLib::GameObject> MyLib::ObjectFactory::CreateUICombo(const Vector2Int& pos, MyLib::Renderer::FontType type)
+{
+    // コンボ用のUIを生成
+    std::shared_ptr<UIComboObj> pUICombo = std::make_shared<UIComboObj>();
+
+    auto pTransform = pUICombo->GetComponent<MyLib::Transform>();
+    if (auto transform = pTransform.lock())
+    {
+        transform->SetScreenPos(pos);
+    }
+
+    auto pCombo = pUICombo->GetComponent<MyLib::UICombo>().lock();
+    pCombo->SetFontHandle(MyLib::Renderer::GetInstance().GetFontHandle(type));
+
+    // オブジェクト管理クラスに追加
+    MyLib::ObjectManager::GetInstance().AddObject(pUICombo);
+
+    return pUICombo;
 }

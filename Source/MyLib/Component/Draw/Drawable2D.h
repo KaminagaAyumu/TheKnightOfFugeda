@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Drawable.h"
 
 namespace MyLib

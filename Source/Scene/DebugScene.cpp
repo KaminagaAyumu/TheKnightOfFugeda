@@ -1,4 +1,4 @@
-#include "DebugScene.h"
+﻿#include "DebugScene.h"
 #include "GameScene.h"
 #include "TitleScene.h"
 #include "SelectScene.h"
@@ -40,6 +40,7 @@ namespace
 
 	constexpr unsigned int kDefaultBgColor = 0xff2200; // 背景をBoxで表示する際の色
 	constexpr unsigned int kSelectTextColor = 0xff00ff; // 選択されている際のテキストの色
+	constexpr unsigned int kCursorTextColor = 0xffffff; // カーソルが合っている項目のテキストの色
 }
 
 DebugScene::DebugScene(SceneController& controller) :
@@ -59,34 +60,36 @@ void DebugScene::Init()
 	m_selectScenes.push_back(SelectData{ L"TitleScene",
 		[this]()
 		{
-			m_sceneController.ChangeScene(std::make_shared<TitleScene>(m_sceneController));
+			m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+			[&controller = m_sceneController] {return std::make_shared<TitleScene>(controller); }, L"Data/File/CSV/Resource/title_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		}
 	});
 	m_selectScenes.push_back(SelectData{ L"SelectScene",
 		[this]()
 		{
-			m_sceneController.ChangeScene(std::make_shared<SelectScene>(m_sceneController));
+			m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+			[&controller = m_sceneController] {return std::make_shared<SelectScene>(controller); }, L"Data/File/CSV/Resource/select_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		}
 	});
 	m_selectScenes.push_back(SelectData{ L"GameScene",
 		[this]()
 		{
 			m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-			[&] {return std::make_shared<GameScene>(m_sceneController, 0); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+			[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kTutorialStageNo); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		}
 	});
 	m_selectScenes.push_back(SelectData{ L"GameScene1",
 		[this]()
 		{
 			m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-			[&] {return std::make_shared<GameScene>(m_sceneController, 1); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+			[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kStage1No); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		}
 	});
 	m_selectScenes.push_back(SelectData{ L"GameScene2",
 		[this]()
 		{
 			m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-			[&] {return std::make_shared<GameScene>(m_sceneController, 2); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+			[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kStage2No); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 		}
 	});
 }
@@ -157,7 +160,7 @@ void DebugScene::Draw() const
 		// 文字が波打つスピードを調整
 		float t = m_frameCount * kTextWaveSpeed;
 
-		DrawString(x + advance, baselineY, m_selectScenes[i].text.c_str(), isSelected ? 0xffffff : kSelectTextColor);
+		DrawString(x + advance, baselineY, m_selectScenes[i].text.c_str(), isSelected ? kCursorTextColor : kSelectTextColor);
 
 		// 次の項目のy座標に進める
 		y += kDefaultItemSpacing;

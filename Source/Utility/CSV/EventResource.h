@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CSVResource.h"
 #include "../Common/Event/EventStructs.h"
 #include <vector>

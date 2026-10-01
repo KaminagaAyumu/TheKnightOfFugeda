@@ -1,4 +1,4 @@
-#include "SelectScene.h"
+﻿#include "SelectScene.h"
 #include "DebugScene.h"
 #include "GameScene.h"
 #include "TitleScene.h"
@@ -35,6 +35,13 @@ namespace
 	//const Vector2Int kSelectListPos = { 400, Game::kScreenHeight - 300 };
 	const Vector2Int kSelectListPos = { Game::kScreenWidth / 2, Game::kScreenHeight - 300 };
 	const Vector2Int kSelectListSize = { Game::kScreenWidth / 2, Game::kScreenHeight - 220 };
+
+	// 見出し・操作説明の文字色
+	constexpr unsigned int kTextColor = 0xffdc00;
+
+	// デバッグ表示関連
+	constexpr unsigned int kDebugTextColor = 0xffffff; // デバッグ表示の文字色
+	constexpr int kDebugTextLineHeight = 16; // デバッグ表示の1行の高さ
 }
 
 SelectScene::SelectScene(SceneController& controller) :
@@ -67,7 +74,7 @@ void SelectScene::Init()
 	m_pText = m_pUIText->GetComponent<MyLib::UIText>();
 	if (auto text = m_pText.lock())
 	{
-		text->SetTextColor(0xaa4400);
+		text->SetTextColor(kTextColor);
 		text->SetText(L"ステージ選択");
 	}
 
@@ -76,7 +83,7 @@ void SelectScene::Init()
 	m_pTextTime = m_pUITextTime->GetComponent<MyLib::UIText>();
 	if (auto text = m_pTextTime.lock())
 	{
-		text->SetTextColor(0xaa4400);
+		text->SetTextColor(kTextColor);
 		text->SetText(L"Aボタンで決定");
 	}
 
@@ -93,19 +100,19 @@ void SelectScene::Init()
 			{
 				MyLib::ObjectManager::GetInstance().End();
 				m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, 0); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kTutorialStageNo); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 			});
 		selectList->AddOption(L"ステージ1", [this]()
 			{
 				MyLib::ObjectManager::GetInstance().End();
 				m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, 1); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kStage1No); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 			});
 		selectList->AddOption(L"ステージ2", [this]()
 			{
 				MyLib::ObjectManager::GetInstance().End();
 				m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
-					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, 2); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
+					[&controller = m_sceneController] {return std::make_shared<GameScene>(controller, Game::kStage2No); }, L"Data/File/CSV/Resource/game_scene.csv", m_sceneController, LoadingScene::TransitionType::Change));
 			});
 		selectList->AddOption(L"タイトルに戻る", [this]()
 			{
@@ -149,8 +156,8 @@ void SelectScene::Draw() const
 {
 	(this->*m_draw)();
 #ifdef _DEBUG
-	DrawString(0, 0, L"SelectScene", GetColor(255, 255, 255));
-	DrawFormatString(0, 16, GetColor(255, 255, 255), L"FRAME:%d", m_frameCount);
+	DrawString(0, 0, L"SelectScene", kDebugTextColor);
+	DrawFormatString(0, kDebugTextLineHeight, kDebugTextColor, L"FRAME:%d", m_frameCount);
 #endif // _DEBUG
 
 }

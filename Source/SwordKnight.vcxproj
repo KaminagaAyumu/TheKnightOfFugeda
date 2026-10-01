@@ -149,9 +149,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Common\ComboCounter.cpp" />
     <ClCompile Include="Common\Effect\Effect.cpp" />
     <ClCompile Include="Common\Effect\EffectManager.cpp" />
     <ClCompile Include="Common\Event\EventManager.cpp" />
+    <ClCompile Include="Common\ScoreCounter.cpp" />
     <ClCompile Include="Common\Sound\SoundManager.cpp" />
     <ClCompile Include="Geometry\BoundingBox.cpp" />
     <ClCompile Include="MyLib\Collider\BoxCollider.cpp" />
@@ -165,8 +167,10 @@
     <ClCompile Include="MyLib\Component\Controller\Enemy\BulletEnemyController.cpp" />
     <ClCompile Include="MyLib\Component\Controller\Enemy\EnemyController.cpp" />
     <ClCompile Include="MyLib\Component\Controller\Enemy\SkullEnemyController.cpp" />
+    <ClCompile Include="MyLib\Component\Controller\ItemController.cpp" />
     <ClCompile Include="MyLib\Component\Controller\LockOnController.cpp" />
     <ClCompile Include="MyLib\Component\Controller\Player\PlayerController.cpp" />
+    <ClCompile Include="MyLib\Component\Draw\UI\UICombo.cpp" />
     <ClCompile Include="MyLib\Component\Draw\UI\UICountDown.cpp" />
     <ClCompile Include="MyLib\Component\Draw\UI\UIImage.cpp" />
     <ClCompile Include="MyLib\Component\Draw\UI\UISelectList.cpp" />
@@ -214,11 +218,16 @@
     <ClCompile Include="Object\Enemy\EnemyManager.cpp" />
     <ClCompile Include="Object\Enemy\SkullEnemy.cpp" />
     <ClCompile Include="Object\Ground.cpp" />
+    <ClCompile Include="Object\Item\Item.cpp" />
+    <ClCompile Include="Object\Item\ItemManager.cpp" />
     <ClCompile Include="Object\Projectile\EnemyBullet.cpp" />
     <ClCompile Include="Object\Skybox.cpp" />
     <ClCompile Include="Object\Stage.cpp" />
+    <ClCompile Include="Object\UI\BoardUI.cpp" />
     <ClCompile Include="Object\UI\LifeUI.cpp" />
     <ClCompile Include="Object\UI\LockOnMarkerUI.cpp" />
+    <ClCompile Include="Object\UI\ParamUI.cpp" />
+    <ClCompile Include="Object\UI\UIComboObj.cpp" />
     <ClCompile Include="Object\UI\UICountDownObj.cpp" />
     <ClCompile Include="Object\UI\UIImageObj.cpp" />
     <ClCompile Include="Object\UI\UIObjBase.cpp" />
@@ -247,6 +256,8 @@
     <ClCompile Include="Utility\CSV\EnemyData.cpp" />
     <ClCompile Include="Utility\CSV\EnemyResource.cpp" />
     <ClCompile Include="Utility\CSV\EventResource.cpp" />
+    <ClCompile Include="Utility\CSV\ItemData.cpp" />
+    <ClCompile Include="Utility\CSV\ItemResource.cpp" />
     <ClCompile Include="Utility\CSV\PlayerAttackResource.cpp" />
     <ClCompile Include="Utility\CSV\ResourceManifestData.cpp" />
     <ClCompile Include="Utility\CSV\TextData.cpp" />
@@ -278,12 +289,15 @@
     <ClCompile Include="Utility\JsonReader.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Common\ComboCounter.h" />
     <ClInclude Include="Common\Effect\Effect.h" />
     <ClInclude Include="Common\Effect\EffectManager.h" />
     <ClInclude Include="Common\Event\EventControls.h" />
     <ClInclude Include="Common\Event\EventManager.h" />
     <ClInclude Include="Common\Event\EventSensors.h" />
     <ClInclude Include="Common\Event\EventStructs.h" />
+    <ClInclude Include="Common\ResultData.h" />
+    <ClInclude Include="Common\ScoreCounter.h" />
     <ClInclude Include="Common\Sound\SoundManager.h" />
     <ClInclude Include="Geometry\BoundingBox.h" />
     <ClInclude Include="MyLib\Collider\BoxCollider.h" />
@@ -297,8 +311,10 @@
     <ClInclude Include="MyLib\Component\Controller\Enemy\BulletEnemyController.h" />
     <ClInclude Include="MyLib\Component\Controller\Enemy\EnemyController.h" />
     <ClInclude Include="MyLib\Component\Controller\Enemy\SkullEnemyController.h" />
+    <ClInclude Include="MyLib\Component\Controller\ItemController.h" />
     <ClInclude Include="MyLib\Component\Controller\LockOnController.h" />
     <ClInclude Include="MyLib\Component\Controller\Player\PlayerController.h" />
+    <ClInclude Include="MyLib\Component\Draw\UI\UICombo.h" />
     <ClInclude Include="MyLib\Component\Draw\UI\UICountDown.h" />
     <ClInclude Include="MyLib\Component\Draw\UI\UIImage.h" />
     <ClInclude Include="MyLib\Component\Draw\UI\UISelectList.h" />
@@ -348,11 +364,16 @@
     <ClInclude Include="Object\Enemy\EnemyManager.h" />
     <ClInclude Include="Object\Enemy\SkullEnemy.h" />
     <ClInclude Include="Object\Ground.h" />
+    <ClInclude Include="Object\Item\Item.h" />
+    <ClInclude Include="Object\Item\ItemManager.h" />
     <ClInclude Include="Object\Projectile\EnemyBullet.h" />
     <ClInclude Include="Object\Skybox.h" />
     <ClInclude Include="Object\Stage.h" />
+    <ClInclude Include="Object\UI\BoardUI.h" />
     <ClInclude Include="Object\UI\LifeUI.h" />
     <ClInclude Include="Object\UI\LockOnMarkerUI.h" />
+    <ClInclude Include="Object\UI\ParamUI.h" />
+    <ClInclude Include="Object\UI\UIComboObj.h" />
     <ClInclude Include="Object\UI\UICountDownObj.h" />
     <ClInclude Include="Object\UI\UIImageObj.h" />
     <ClInclude Include="Object\UI\UIObjBase.h" />
@@ -381,6 +402,8 @@
     <ClInclude Include="Utility\CSV\EnemyData.h" />
     <ClInclude Include="Utility\CSV\EnemyResource.h" />
     <ClInclude Include="Utility\CSV\EventResource.h" />
+    <ClInclude Include="Utility\CSV\ItemData.h" />
+    <ClInclude Include="Utility\CSV\ItemResource.h" />
     <ClInclude Include="Utility\CSV\PlayerAttackResource.h" />
     <ClInclude Include="Utility\CSV\ResourceManifestData.h" />
     <ClInclude Include="Utility\CSV\TextData.h" />

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "EnemyController.h"
 
 namespace MyLib
@@ -21,16 +21,11 @@ namespace MyLib
 		void Update() override;
 		void End() override;
 
-		
-
 	private:
-
-		// HP(仮)
+		// 敵の体力
 		int m_hp;
 
 		std::shared_ptr<MyLib::Transform> m_pModelOffset;	// 敵のモデルのオフセット
-
-
 	};
 }
 

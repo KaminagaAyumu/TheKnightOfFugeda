@@ -1,5 +1,12 @@
-#include "TextResource.h"
+﻿#include "TextResource.h"
 #include <cassert>
+
+namespace
+{
+	// CSVの列番号
+	constexpr int kIdColumn = 0;	// テキストのID
+	constexpr int kTextColumn = 1;	// 表示するテキスト
+}
 
 void TextResource::ConvertTextData()
 {
@@ -9,8 +16,8 @@ void TextResource::ConvertTextData()
 	for (size_t i = 0; i < size; ++i)
 	{
 		// データを読み込む
-		std::wstring id = Read<std::wstring>(static_cast<int>(i), 0);
-		std::wstring text = Read<std::wstring>(static_cast<int>(i), 1);
+		std::wstring id = Read<std::wstring>(static_cast<int>(i), kIdColumn);
+		std::wstring text = Read<std::wstring>(static_cast<int>(i), kTextColumn);
 
 		// 攻撃データを作成
 		std::shared_ptr<TextData> data = std::make_shared<TextData>();

@@ -1,4 +1,4 @@
-#include "PlayerStateAttack.h"
+﻿#include "PlayerStateAttack.h"
 #include "PlayerStateIdle.h"
 #include "PlayerStateWalk.h"
 #include "PlayerStateDash.h"
@@ -14,6 +14,7 @@
 #include "../../../MyLib/Component/EffectComponent.h"
 #include "../../../Common/Model.h"
 #include "../../../Common/Effect/Effect.h"
+#include <algorithm>
 
 namespace
 {
@@ -48,50 +49,9 @@ void MyLib::PlayerStateAttack::OnInit(PlayerController* owner)
 	m_attackResource = owner->GetAttackResource();
 	m_frameCount = 0;
 	m_currentAttackData = m_attackResource.GetAttackData(AttackData::AttackID::Attack1);
+	m_isNextAttack = false;
 
-	if (m_pOwner->IsLockOn())
-	{
-		auto pTransform = m_pOwner->GetTransform().lock();
-
-		auto pRigid = m_pOwner->GetRigidbody().lock();
-
-		pRigid->SetVelocity(pTransform->GetDir() * kMoveSpeed);
-	}
-	else
-	{
-		// 入力管理クラスのインスタンスを取得
-		Input& input = Input::GetInstance();
-		Input::XInputData stickData = input.GetXInputData();
-		if (stickData.leftStick.Length() != 0.0f)
-		{
-			// コントローラーの入力を取得して移動できるようにする
-			VECTOR move = GetCameraFrontVector();
-
-			Vector3 moveDir = { move.x, 0.0f, move.z };
-			// Y方向を初期化
-			moveDir.y = 0;
-
-			// 正規化して正面方向を出す
-			Vector3 forward = moveDir.Normalized();
-			// 外積を使ってmoveDirを正面とした右方向のベクトルを出す
-			Vector3 right = Vector3::Cross(Vector3::Up(), forward);
-			// 右方向のベクトルを正規化
-			right.Normalize();
-
-			// 正面入力の作成
-			Vector3 inputForward = forward * stickData.leftStick.y * kMoveSpeed;
-
-			// 左右入力の作成
-			Vector3 inputSide = right * stickData.leftStick.x * kMoveSpeed;
-
-			// 入力の合成
-			Vector3 vel = inputForward + inputSide;
-
-			auto pRigid = m_pOwner->GetRigidbody().lock();
-
-			pRigid->SetVelocity(vel);
-		}
-	}
+	UpdateMoveVelocity();
 
 	PlayAttackEffect();
 }
@@ -107,6 +67,8 @@ void MyLib::PlayerStateAttack::OnUpdate()
 	std::shared_ptr<MyLib::Animator> pAnimator = m_pAnimator.lock();
 
 	m_frameCount++;
+
+	UpdateMoveVelocity();
 
 	std::shared_ptr<MyLib::SphereCollider> pAttackCollider = m_pAttackCol.lock();
 	// 現在のフレームが攻撃の発生フレームを超えており、持続フレーム以内ならば攻撃判定を表示する
@@ -133,14 +95,23 @@ void MyLib::PlayerStateAttack::OnUpdate()
 			return;
 		}
 
-		// 移動のステートに移行
-		/*Input::XInputData stickData = input.GetXInputData();
-		if (stickData.leftStick.Length() != 0.0f)
+		// 次の攻撃に移行
+		if (m_pOwner->IsBuffered("AButton"))
 		{
-			pAttackCollider->SetEnable(false);
-			m_pStateMachine->ChangeState<MyLib::PlayerStateWalk>();
-			return;
-		}*/
+			if (m_currentAttackData->GetNextAttackID() != AttackData::AttackID::None)
+			{
+				pAnimator->ChangeAnimation(m_currentAttackData->GetNextAnimName(), kAnimSpeed, kAnimBlendFrame, false);
+				m_currentAttackData = m_attackResource.GetAttackData(m_currentAttackData->GetNextAttackID());
+				m_frameCount = 0;
+				m_isNextAttack = false;
+				UpdateMoveVelocity();
+				return;
+			}
+			
+			// ここに来るのはコンボの最終段のみのため入力をリセットする
+			m_pOwner->ClearBuffer("AButton");
+		}
+
 	}
 
 	// 攻撃の入力があった場合
@@ -164,53 +135,11 @@ void MyLib::PlayerStateAttack::OnUpdate()
 			return;
 		}
 
-		if (m_pOwner->IsLockOn())
-		{
-			auto pTransform = m_pOwner->GetTransform().lock();
-
-			auto pRigid = m_pOwner->GetRigidbody().lock();
-
-			pRigid->SetVelocity(pTransform->GetDir() * kMoveSpeed);
-		}
-		else
-		{
-			// スティックの入力があれば移動する
-			Input::XInputData stickData = input.GetXInputData();
-			if (stickData.leftStick.Length() != 0.0f)
-			{
-				// コントローラーの入力を取得して移動できるようにする
-				VECTOR move = GetCameraFrontVector();
-
-				Vector3 moveDir = { move.x, 0.0f, move.z };
-				// Y方向を初期化
-				moveDir.y = 0;
-
-				// 正規化して正面方向を出す
-				Vector3 forward = moveDir.Normalized();
-				// 外積を使ってmoveDirを正面とした右方向のベクトルを出す
-				Vector3 right = Vector3::Cross(Vector3::Up(), forward);
-				// 右方向のベクトルを正規化
-				right.Normalize();
-
-				// 正面入力の作成
-				Vector3 inputForward = forward * stickData.leftStick.y * kMoveSpeed;
-
-				// 左右入力の作成
-				Vector3 inputSide = right * stickData.leftStick.x * kMoveSpeed;
-
-				// 入力の合成
-				Vector3 vel = inputForward + inputSide;
-
-				auto pRigid = m_pOwner->GetRigidbody().lock();
-
-				pRigid->SetVelocity(vel);
-			}
-		}
-
 		pAnimator->ChangeAnimation(m_currentAttackData->GetNextAnimName(), kAnimSpeed, kAnimBlendFrame, false);
 		m_currentAttackData = m_attackResource.GetAttackData(m_currentAttackData->GetNextAttackID());
 		m_frameCount = 0;
 		m_isNextAttack = false;
+		UpdateMoveVelocity();
 		return;
 	}
 
@@ -246,4 +175,66 @@ void MyLib::PlayerStateAttack::PlayAttackEffect()
 
 		return Matrix4x4::ToMatrix(MV1GetFrameLocalWorldMatrix(swordModel->GetModelHandle(), 0));
 	}, Vector3::Zero(), Quaternion::Identity());
+}
+
+Vector3 MyLib::PlayerStateAttack::GetAttackDir()
+{
+	// 入力管理クラスのインスタンスを取得
+	Input& input = Input::GetInstance();
+	Input::XInputData stickData = input.GetXInputData();
+	if (stickData.leftStick.Length() != 0.0f)
+	{
+		// コントローラーの入力を取得して移動できるようにする
+		VECTOR move = GetCameraFrontVector();
+
+		Vector3 moveDir = { move.x, 0.0f, move.z };
+		// Y方向を初期化
+		moveDir.y = 0;
+
+		// 正規化して正面方向を出す
+		Vector3 forward = moveDir.Normalized();
+		// 外積を使ってmoveDirを正面とした右方向のベクトルを出す
+		Vector3 right = Vector3::Cross(Vector3::Up(), forward);
+		// 右方向のベクトルを正規化
+		right.Normalize();
+
+		// 正面入力の作成
+		Vector3 inputForward = forward * stickData.leftStick.y;
+
+		// 左右入力の作成
+		Vector3 inputSide = right * stickData.leftStick.x;
+
+		// 入力の合成
+		Vector3 dir = inputForward + inputSide;
+
+		// 最終的な向きを返す
+		return dir;
+	}
+	else
+	{
+		return Vector3::Zero();
+	}
+}
+
+void MyLib::PlayerStateAttack::UpdateMoveVelocity()
+{
+	Vector3 dir;
+	if (m_pOwner->IsLockOn())
+	{
+		auto pTransform = m_pOwner->GetTransform().lock();
+
+		dir = pTransform->GetDir();
+	}
+	else
+	{
+		dir = GetAttackDir();
+	}
+
+	float t = std::clamp(static_cast<float>(m_frameCount) / m_currentAttackData->GetMoveEndFrame(), 0.0f, 1.0f);
+
+	float speed = m_currentAttackData->GetInitSpeed() * (1.0f - t) * (1.0f - t);
+
+	auto pRigid = m_pOwner->GetRigidbody().lock();
+
+	pRigid->SetVelocity(dir * speed);
 }

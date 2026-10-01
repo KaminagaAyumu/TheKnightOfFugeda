@@ -1,4 +1,4 @@
-#include "TitleScene.h"
+﻿#include "TitleScene.h"
 #include "SelectScene.h"
 #include "DebugScene.h"
 #include "LoadingScene.h"
@@ -39,6 +39,15 @@ namespace
 	const Vector2Int kSelectListSize = { 325, 180 };
 
 	const Vector3 kEffectPos = { 0.0f, 0.0f, 15.0f };
+
+	// UIの演出関連
+	constexpr int kStartTextBlinkFrame = 120; // スタートテキストの点滅1周のフレーム数
+	constexpr int kStartTextFadeOutFrame = 20; // スタートテキストが消えるまでのフレーム数
+	constexpr int kSelectListAppearFrame = 10; // 選択リストの出現が終わるまでのフレーム数
+
+	// デバッグ表示関連
+	constexpr unsigned int kDebugTextColor = 0xffffff; // デバッグ表示の文字色
+	constexpr int kDebugTextLineHeight = 16; // デバッグ表示の1行の高さ
 }
 
 TitleScene::TitleScene(SceneController& controller) : 
@@ -67,7 +76,7 @@ void TitleScene::Init()
 	m_startText = MyLib::ObjectFactory::CreateUIImage(kGameStartTextPos);
 	auto pUIImage = m_startText->GetComponent<MyLib::UIImage>().lock();
 	pUIImage->SetImageFile(m_file);
-	pUIImage->StartBlinking(120);
+	pUIImage->StartBlinking(kStartTextBlinkFrame);
 
 	m_skybox = std::dynamic_pointer_cast<Skybox>(MyLib::ObjectFactory::CreateSkybox());
 
@@ -155,8 +164,8 @@ void TitleScene::Draw() const
 {
 	(this->*m_draw)();
 #ifdef _DEBUG
-	DrawString(0, 0, L"GameScene", GetColor(255, 255, 255));
-	DrawFormatString(0, 16, GetColor(255, 255, 255), L"FRAME:%d", m_frameCount);
+	DrawString(0, 0, L"GameScene", kDebugTextColor);
+	DrawFormatString(0, kDebugTextLineHeight, kDebugTextColor, L"FRAME:%d", m_frameCount);
 #endif // _DEBUG
 
 }
@@ -194,13 +203,13 @@ void TitleScene::NormalUpdate()
 		m_update = &TitleScene::SelectUpdate;
 		auto selectList = m_pSelectList.lock();
 		selectList->SetActive(true);
-		selectList->StartAppearCenter(10);
+		selectList->StartAppearCenter(kSelectListAppearFrame);
 
 		auto pUIImage = m_startText->GetComponent<MyLib::UIImage>().lock();
 		if (pUIImage)
 		{
 			pUIImage->StopBlinking();
-			pUIImage->StartFadeOut(20, false);
+			pUIImage->StartFadeOut(kStartTextFadeOutFrame, false);
 		}
 		
 		// ウィンドウを開く際のSEを再生

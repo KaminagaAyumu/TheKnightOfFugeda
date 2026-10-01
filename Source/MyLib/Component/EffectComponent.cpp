@@ -1,4 +1,4 @@
-#include "EffectComponent.h"
+﻿#include "EffectComponent.h"
 #include "Transform.h"
 #include "../GameObject.h"
 #include "../../Common/Effect/EffectManager.h"

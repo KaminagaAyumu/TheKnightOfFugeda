@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../MyLib/GameObject.h"
 #include "../../MyLib/Component/Transform.h"
 #include "../../Utility/CSV/EnemyResource.h"
@@ -60,6 +60,12 @@ public:
 	/// <returns>新たなターゲット</returns>
 	std::weak_ptr<MyLib::Transform> ReGetNearEnemyTransform(const Vector3& playerPos, const Vector3& cameraPos, float fovDegree, const Vector3& currentEnemyPos, bool isLeft);
 
+	/// <summary>
+	/// 現在のフレーム内で敵が死んだ数を返す
+	/// </summary>
+	/// <returns></returns>
+	const int GetDeadCountThisFrame() const { return m_deadCountThisFrame; }
+
 private:
 
 	// 敵のコンテナ(生成管理などに使用)
@@ -67,5 +73,8 @@ private:
 
 	// 敵の配置などのデータを管理するCSVデータクラス
 	EnemyResource m_enemyResource;
+
+	// 現在のフレーム内で敵が死んだ数
+	int m_deadCountThisFrame;
 };
 

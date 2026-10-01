@@ -1,4 +1,4 @@
-#include <string>
+﻿#include <string>
 #include "SoundManager.h"
 #include "DxLib.h"
 #include <algorithm>

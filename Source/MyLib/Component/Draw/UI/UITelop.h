@@ -23,7 +23,9 @@ namespace MyLib
 		void SetBandColor(unsigned int color) { m_bandColor = color; }
 		void SetBandHeight(int height) { m_bandHeight = height; }
 
-		void ShowMessage(const std::wstring& text, int slideFrame = 20, int overshootFrame = 8, int holdFrame = 90);
+		// 演出のフレーム数は初期値を使ってメッセージを表示する
+		void ShowMessage(const std::wstring& text);
+		void ShowMessage(const std::wstring& text, int slideFrame, int overshootFrame, int holdFrame);
 
 		bool IsSequenceFinished() const { return m_phase == Phase::Finished; }
 

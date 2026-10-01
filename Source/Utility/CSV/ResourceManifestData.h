@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "CSVResource.h"
 #include "../ResourceRequest.h"
 #include <vector>

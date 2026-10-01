@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SceneBase.h"
 #include "../MyLib/Component/Draw/UI/UISelectList.h"
 #include <memory>
@@ -28,6 +28,9 @@ private:
 
 	using DrawFunc_t = void(GameoverScene::*)()const;
 	DrawFunc_t m_draw;
+
+	// ゲームオーバーの文字の画像
+	std::shared_ptr<MyLib::GameObject> m_pUIGameOverImage;
 
 	std::shared_ptr<MyLib::GameObject> m_pUISelectList;
 	std::weak_ptr<MyLib::UISelectList> m_pSelectList;

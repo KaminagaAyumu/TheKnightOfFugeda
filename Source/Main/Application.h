@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include <vector>
 
 /// <summary>
 /// アプリケーション管理クラス(シングルトン)
@@ -47,6 +48,15 @@ public:
 	/// <returns>現在のタイムスケール</returns>
 	float GetTimeScale() const { return m_timeScale; }
 
+	/// <summary>
+	/// ハイスコアをセットする
+	/// </summary>
+	/// <param name="score">スコアの値</param>
+	/// <param name="stageNo">ステージ番号</param>
+	void SetHighScore(int score, int stageNo);
+
+	std::vector<int> GetHighScore();
+
 private:
 	/// <summary>
 	/// コンストラクタ
@@ -60,6 +70,9 @@ private:
 	bool m_isGameEnd; // ゲーム終了フラグ
 
 	float m_timeScale; // ゲームの時間スピード
+
+	// ハイスコア
+	std::vector<int> m_highScores;
 
 #ifdef _DEBUG
 	// デバッグの状況

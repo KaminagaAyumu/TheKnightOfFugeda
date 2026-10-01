@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 
 // イベント関連
@@ -11,6 +11,7 @@ namespace Events
 		TextEnd, // テキスト表示が終わった
 		CountDownEnd, // カウントダウンが終わった
 		AllEnemyDead, // 敵を全滅させた
+		AllItemGet, // アイテムをすべて取った
 		NoTrigger, // 条件なし
 	};
 

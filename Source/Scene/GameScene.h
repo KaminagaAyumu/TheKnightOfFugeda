@@ -1,24 +1,29 @@
-#pragma once
+﻿#pragma once
 #include "SceneBase.h"
 #include "../Utility/CSV/TextResource.h"
 #include "../MyLib/GameObject.h"
 #include "../MyLib/Component/Draw/UI/UITelop.h"
 #include "../MyLib/Component/Draw/UI/UIText.h"
+#include "../MyLib/Component/Draw/UI/UICombo.h"
 #include "../MyLib/Component/Draw/UI/UICountDown.h"
 #include <memory>
 
 class File;
 class Player;
 class PlayerCamera;
-class BulletEnemy;
 class EnemyManager;
+class ItemManager;
 struct EventSensors;
 struct EventControls;
 class EventManager;
 class LockOnMarkerUI;
 class LifeUI;
+class ParamUI;
+class BoardUI;
 class Stage;
 class Skybox;
+class ComboCounter;
+class ScoreCounter;
 
 /// <summary>
 /// ゲームシーン
@@ -43,7 +48,10 @@ public:
 private:
 
 	// 敵管理クラス
-	std::shared_ptr<EnemyManager> m_enemyManager;
+	std::shared_ptr<EnemyManager> m_pEnemyManager;
+
+	// アイテム管理クラス
+	std::shared_ptr<ItemManager> m_pItemManager;
 
 	std::shared_ptr<Player> m_pPlayer;
 
@@ -54,6 +62,10 @@ private:
 	std::shared_ptr<EventSensors> m_pEventSensors;
 	std::shared_ptr<EventControls> m_pEventControls;
 	std::unique_ptr<EventManager> m_pEventManager;
+
+	std::unique_ptr<ComboCounter> m_pComboCounter;
+
+	std::unique_ptr<ScoreCounter> m_pScoreCounter;
 
 	TextResource m_textResources;
 
@@ -66,9 +78,17 @@ private:
 	std::shared_ptr<MyLib::GameObject> m_pUIText;
 	std::weak_ptr<MyLib::UIText> m_pText;
 
+	std::shared_ptr<MyLib::GameObject> m_pUIComboText;
+	std::weak_ptr<MyLib::UICombo> m_pComboText;
+
+	std::shared_ptr<ParamUI> m_pScoreUI;
+
 	std::shared_ptr<LockOnMarkerUI> m_pLockOnMarker;
 
 	std::shared_ptr<LifeUI> m_pLifeUI;
+
+	// 操作説明のボード(チュートリアルステージでのみ生成する)
+	std::shared_ptr<BoardUI> m_pGuideBoard;
 
 	// ロックオンの対象
 	std::weak_ptr<MyLib::Transform> m_pLockOnTarget;

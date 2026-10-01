@@ -1,10 +1,11 @@
-#include "EnemyStateChase.h"
+﻿#include "EnemyStateChase.h"
 #include "EnemyStateBack.h"
 #include "../../../MyLib/Component/Controller/Enemy/EnemyController.h"
 #include "../../../MyLib/Component/Animator.h"
 #include "../../../MyLib/Component/Transform.h"
 #include "../../../MyLib/Component/Rigidbody.h"
 #include "../../../MyLib/Component/EffectComponent.h"
+#include "../../../Common/Sound/SoundManager.h"
 #include "../../../MyLib/GameObject.h"
 #include <string>
 #include <cassert>
@@ -53,7 +54,16 @@ void MyLib::EnemyStateChase::OnInit(EnemyController* owner)
 
 	auto effectComponent = owner->GetOwnerObj().lock()->GetComponent<MyLib::EffectComponent>().lock();
 
-	effectComponent->PlayEffect(L"detect.efk", kEffectOffset);
+	if (owner->TryNotifyDetect())
+	{
+		// プレイヤー発見時のエフェクトを生成
+		auto effectComponent = owner->GetOwnerObj().lock()->GetComponent<MyLib::EffectComponent>().lock();
+
+		effectComponent->PlayEffect(L"detect.efk", kEffectOffset);
+
+		SoundManager::GetInstance().Play("Detect", 1.0f, true);
+	}
+
 }
 
 void MyLib::EnemyStateChase::OnUpdate()

@@ -47,6 +47,8 @@ bool EventManager::CheckTrigger(const Events::EventData& data)
 	case TriggerType::AllEnemyDead:
 		return sensors->isAllEnemyDeadFunc();
 		break;
+	case TriggerType::AllItemGet:
+		return sensors->isAllItemGetFunc();
 	default:
 		return false;
 		break;

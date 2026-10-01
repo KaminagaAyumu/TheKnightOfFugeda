@@ -1,4 +1,4 @@
-#include "PlayerController.h"
+﻿#include "PlayerController.h"
 #include "../../../State/Player/PlayerStateIdle.h"
 #include "../../../State/Player/PlayerStateFreeze.h"
 #include "../../../State/Player/PlayerStateDamage.h"
@@ -128,7 +128,6 @@ void MyLib::PlayerController::Init(std::weak_ptr<MyLib::GameObject> parent)
 	// 親オブジェクトを取得
 	std::shared_ptr<MyLib::GameObject> pParent = parent.lock();
 
-	// test
 	m_pTransform = pParent->GetComponent<MyLib::Transform>();	// Transformコンポーネントの弱参照を取得
 
 	m_pDrawable3D = pParent->GetComponent<MyLib::Drawable3D>();	// Drawable3Dコンポーネントの弱参照を取得
@@ -252,12 +251,6 @@ void MyLib::PlayerController::Init(std::weak_ptr<MyLib::GameObject> parent)
 		{
 			if (m_stateMachine.IsCheckState<MyLib::PlayerStateFreeze>() || m_hp <= 0) return;
 
-			if (info.otherCollider->GetShape() == MyLib::ColliderBase::ColliderShape::GroundMesh ||
-				info.otherCollider->GetShape() == MyLib::ColliderBase::ColliderShape::WallMesh)
-			{
-				//printfDx(L"床か壁についている\n");
-			}
-
 			// 無敵時間ではない状態でプレイヤーの本体に当たった場合
 			if (info.myCollider->GetTag() != MyLib::ColliderBase::ObjectTag::PlayerAttach && !IsInvincible() && !IsGuarding())
 			{
@@ -329,10 +322,6 @@ void MyLib::PlayerController::Start()
 void MyLib::PlayerController::Update()
 {
 	UpdateInputBuffer();
-
-	Vector3 posTest = GetTransform().lock()->GetPos();
-
-	//printfDx(L"%f,%f,%f\n", posTest.x, posTest.y, posTest.z);
 
 	// 無敵時間中の処理
 	if (IsInvincible())
@@ -496,7 +485,10 @@ void MyLib::PlayerController::SetCanAct(bool canAct)
 
 bool MyLib::PlayerController::IsBuffered(const std::string& name) const
 {
+	// 現在の入力バッファに対象のキーが存在するかを確認
 	auto it = m_inputBufferFrames.find(name);
+
+	// 入力バッファにキーが存在し、先行入力と判定される場合trueを返す
 	return it != m_inputBufferFrames.end() && it->second > 0;
 }
 

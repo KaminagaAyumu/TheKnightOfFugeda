@@ -8,12 +8,14 @@ AttackData::AttackData() :
 	m_comboFrame(0),
 	m_animChangeFrame(0),
 	m_cancelFrame(0),
+	m_initSpeed(0.0f),
+	m_moveEndFrame(0),
 	m_nextAttackID(AttackID::None),
 	m_nextAnimName(L"")
 {
 }
 
-void AttackData::SetData(AttackID id, int startFrame, int activeFrame, int comboFrame, int animChangeFrame, int cancelFrame, AttackID nextID, const std::wstring& nextAnim)
+void AttackData::SetData(AttackID id, int startFrame, int activeFrame, int comboFrame, int animChangeFrame, int cancelFrame, float initSpeed, int moveEndFrame, AttackID nextID, const std::wstring& nextAnim)
 {
 	m_id = id;
 	m_startFrame = startFrame;
@@ -21,6 +23,8 @@ void AttackData::SetData(AttackID id, int startFrame, int activeFrame, int combo
 	m_comboFrame = comboFrame;
 	m_animChangeFrame = animChangeFrame;
 	m_cancelFrame = cancelFrame;
+	m_initSpeed = initSpeed;
+	m_moveEndFrame = moveEndFrame;
 	m_nextAttackID = nextID;
 	m_nextAnimName = nextAnim;
 }

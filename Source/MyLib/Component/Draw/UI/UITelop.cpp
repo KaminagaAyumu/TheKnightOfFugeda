@@ -1,21 +1,36 @@
-#include "UITelop.h"
+﻿#include "UITelop.h"
 #include "../../../GameObject.h"
 #include "../../../Renderer.h"
 #include "../../../../Utility/Game.h"
 #include <cassert>
 
-MyLib::UITelop::UITelop(DrawLayer layer) : 
+namespace
+{
+	// 帯の初期設定
+	constexpr unsigned int kDefaultBandColor = 0x3300aa;	// 帯の色
+	constexpr int kDefaultBandHeight = 80;	// 帯の高さ
+
+	// 演出の初期設定
+	constexpr int kDefaultSlideFrame = 20;	// スライドイン・スライドアウトにかけるフレーム数
+	constexpr int kDefaultOvershootFrame = 8;	// 行き過ぎた位置から戻るまでのフレーム数
+	constexpr int kDefaultHoldFrame = 90;	// 中央で止まっているフレーム数
+	constexpr float kDefaultOvershootAmount = 30.0f;	// 中央から行き過ぎる量
+
+	constexpr unsigned int kTextColor = 0xffffff;	// 文字色
+}
+
+MyLib::UITelop::UITelop(DrawLayer layer) :
 	Drawable2D(layer),
 	m_fontHandle(-1),
-	m_bandColor(0x3300aa),
-	m_bandHeight(80),
+	m_bandColor(kDefaultBandColor),
+	m_bandHeight(kDefaultBandHeight),
 	m_text(L""),
 	m_phase(Phase::Idle),
 	m_phaseFrameCount(0),
-	m_slideFrame(20),
-	m_overshootFrame(8),
-	m_holdFrame(90),
-	m_overshootAmount(30.0f),
+	m_slideFrame(kDefaultSlideFrame),
+	m_overshootFrame(kDefaultOvershootFrame),
+	m_holdFrame(kDefaultHoldFrame),
+	m_overshootAmount(kDefaultOvershootAmount),
 	m_textOffsetX(0.0f),
 	m_isAlive(true)
 {
@@ -63,6 +78,7 @@ void MyLib::UITelop::Update()
 
 void MyLib::UITelop::End()
 {
+	Renderer::GetInstance().Exit(shared_from_this());
 }
 
 void MyLib::UITelop::Draw() const
@@ -85,7 +101,12 @@ void MyLib::UITelop::Draw() const
 	const int x = pos.x - textW / 2 + static_cast<int>(m_textOffsetX);
 	const int y = pos.y - fontSize / 2;
 
-	DrawStringToHandle(x, y, m_text.c_str(), 0xffffff, m_fontHandle);
+	DrawStringToHandle(x, y, m_text.c_str(), kTextColor, m_fontHandle);
+}
+
+void MyLib::UITelop::ShowMessage(const std::wstring& text)
+{
+	ShowMessage(text, kDefaultSlideFrame, kDefaultOvershootFrame, kDefaultHoldFrame);
 }
 
 void MyLib::UITelop::ShowMessage(const std::wstring& text, int slideFrame, int overshootFrame, int holdFrame)

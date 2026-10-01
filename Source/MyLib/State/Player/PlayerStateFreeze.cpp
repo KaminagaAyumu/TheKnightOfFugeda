@@ -1,4 +1,4 @@
-#include "PlayerStateFreeze.h"
+﻿#include "PlayerStateFreeze.h"
 #include "../../../MyLib/Component/Controller/Player/PlayerController.h"
 #include "../../../MyLib/Component/Animator.h"
 

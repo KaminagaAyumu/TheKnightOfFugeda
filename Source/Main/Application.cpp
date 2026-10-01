@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 #include "../Scene/SceneController.h"
 #include "../Scene/DebugScene.h"
 #include "../Scene/TitleScene.h"
@@ -20,12 +20,20 @@ namespace
 {
 	const wchar_t* kFontPath = L"Data/File/Font/HGRME.TTC";
 
-	constexpr int kEffectMaxNum = 8000;
-
 	//const wchar_t* kFontPath = L"Data/File/Font/CP_Revenge.ttf";
 }
 
-Application::Application() : 
+void Application::SetHighScore(int score, int stageNo)
+{
+	m_highScores[stageNo] = score;
+}
+
+std::vector<int> Application::GetHighScore()
+{
+	return m_highScores;
+}
+
+Application::Application() :
 	m_isGameEnd(false),
 	m_timeScale(1.0f)
 {
@@ -52,7 +60,7 @@ bool Application::Init()
 	ChangeWindowMode(false);
 #endif
 	// ウインドウのタイトル変更
-	SetMainWindowText(L"SwordKnight");
+	SetMainWindowText(L"TheKnightOfFUGEDA");
 	// 画面のサイズ変更
 	SetGraphMode(Game::kScreenWidth, Game::kScreenHeight, Game::kColorBitNum);
 
@@ -141,6 +149,9 @@ void Application::Run()
 	MyLib::Physics& physics = MyLib::Physics::GetInstance();
 	// 当たり判定処理を初期化
 	physics.Init(Game::kOctreeLevel, BoundingBox{Vector3::SetAll(Game::kMinStageSize), Vector3::SetAll(Game::kMaxStageSize) });
+
+	// ステージの数分ハイスコアを設定、初期化
+	m_highScores.assign(Game::kStageNum + 1, 0);
 
 	// シーン管理クラスのインスタンスを生成
 	SceneController controller;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SceneBase.h"
 #include "../MyLib/Component/Draw/UI/UIText.h"
 #include "../MyLib/Component/Draw/UI/UISelectList.h"

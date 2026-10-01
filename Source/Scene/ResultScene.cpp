@@ -1,18 +1,25 @@
-#include "ResultScene.h"
+﻿#include "ResultScene.h"
 #include "TitleScene.h"
 #include "SelectScene.h"
 #include "GameScene.h"
+#include "LoadingScene.h"
 #include "SceneController.h"
 #include "../Utility/Input.h"
 #include "../Common/Model.h"
 #include "../Geometry/Vector3.h"
 #include "../Utility/Binary/TerrainResource.h"
+#include "../Utility/File/FileManager.h"
 #include "../Utility/Game.h"
 #include "../MyLib/ObjectFactory.h"
 #include "../MyLib/ObjectManager.h"
+#include "../MyLib/MyMath.h"
+#include "../Common/ResultData.h"
 #include "../Common/Effect/EffectManager.h"
 #include "../Common/Sound/SoundManager.h"
 #include "../Object/Skybox.h"
+#include "../Object/UI/ParamUI.h"
+#include "../Object/UI/BoardUI.h"
+#include "../Main/Application.h"
 #include <cassert>
 #include "DxLib.h"
 
@@ -26,20 +33,58 @@ namespace
 
 	constexpr int kCursorMoveIndex = 1;	// カーソルが動く値
 
-	const Vector2Int kTextPos = { Game::kScreenWidth / 2, 80 };
-	const Vector2Int kTextTimePos = { Game::kScreenWidth / 2, 220 };
+	constexpr float kParamAddRate = 0.2f;
 
-	const Vector2Int kSelectListPos = { Game::kScreenWidth / 2, Game::kScreenHeight - 200 };
-	const Vector2Int kSelectListSize = { 500, 300 };
+	constexpr float kParamThreshold = 0.9f;
+
+	// タイムボーナスの最大値
+	constexpr int kTimeBonusMax = 5000;
+
+	// タイムボーナスがもらえるクリアタイムの上限(秒)
+	constexpr int kTimeBonusLimitSec = 30;
+
+	// 体力1つにつき与えられるボーナススコア
+	constexpr int kLifeBonusScore = 3000;
+
+	// 最大コンボ数に応じて与えられるボーナススコア
+	constexpr int kMaxComboBonusScore = 500;
+
+	const Vector2Int kTextPos = { Game::kScreenWidth / 2, 80 };
+	const Vector2Int kTextTimePos = { Game::kScreenWidth / 2, 200 };
+	const Vector2Int kTextLifePos = { Game::kScreenWidth / 2, 200+75 };
+	const Vector2Int kTextMaxComboPos = { Game::kScreenWidth / 2, 200+75+75 };
+	const Vector2Int kTextScorePos = { Game::kScreenWidth / 2, 200 + 75 + 75 + 75 };
+
+	// ボーナススコアを表示する位置のマージン
+	const Vector2Int kTextBonusPosMargin = { 330, 0 };
+
+	const Vector2Int kSelectListPos = { Game::kScreenWidth / 2, Game::kScreenHeight - 150 };
+	const Vector2Int kSelectListSize = { 500, 200 };
+
+	const Vector2Int kHighScoreBoardPos = { Game::kScreenWidth - 200, Game::kScreenHeight - 180 };
+	const Vector2Int kHighScoreBoardSize = { 340, 190 };
+	// ハイスコアのボードの、ステージ名とスコアの境目のずらし量
+	// ステージ名の方が長いため、はみ出さないように境目を右にずらす
+	constexpr int kHighScoreSeparatorOffsetX = 70;
+
+	// 見出しの文字色
+	constexpr unsigned int kHeaderTextColor = 0xffd400;
+
+	// デバッグ表示関連
+	constexpr unsigned int kDebugTextColor = 0xffffff; // デバッグ表示の文字色
+	constexpr int kDebugTextLineHeight = 16; // デバッグ表示の1行の高さ
+
+
 }
 
-ResultScene::ResultScene(SceneController& controller, int gameTime, int stageNo) :
+ResultScene::ResultScene(SceneController& controller, std::shared_ptr<ResultData> data) : 
 	SceneBase(controller),
 	m_update(&ResultScene::FadeInUpdate),
 	m_draw(&ResultScene::FadeDraw),
-	m_gameTime(gameTime),
-	m_stageNo(stageNo)
+	m_bonusScore{},
+	m_prevHighScore(0)
 {
+	m_pResultData = data;
 }
 
 ResultScene::~ResultScene()
@@ -62,18 +107,40 @@ void ResultScene::Init()
 	m_pText = m_pUIText->GetComponent<MyLib::UIText>();
 	if (auto text = m_pText.lock())
 	{
-		text->SetTextColor(0xaa4400);
+		text->SetTextColor(kHeaderTextColor);
 		text->SetText(L"クリア!");
 	}
+
+	m_pTimeUI = std::make_shared<ParamUI>();
+	m_pTimeUI->Init(kTextTimePos);
+	m_pTimeUI->SetText(L"クリアタイム");
+
+	m_pLifeUI = std::make_shared<ParamUI>();
+	m_pLifeUI->Init(kTextLifePos);
+	m_pLifeUI->SetText(L"残り体力");
 	
-	m_pUITextTime = MyLib::ObjectFactory::CreateUIText(kTextTimePos, MyLib::Renderer::FontType::Large);
-	m_pUITextTime->Init();
-	m_pTextTime = m_pUITextTime->GetComponent<MyLib::UIText>();
-	if (auto text = m_pTextTime.lock())
-	{
-		text->SetTextColor(0xaa4400);
-		text->SetText(L"クリアタイム:" + std::to_wstring(m_gameTime / 60));
-	}
+	m_pMaxComboUI = std::make_shared<ParamUI>();
+	m_pMaxComboUI->Init(kTextMaxComboPos);
+	m_pMaxComboUI->SetText(L"最大コンボ");
+
+	m_pScoreUI = std::make_shared<ParamUI>();
+	m_pScoreUI->Init(kTextScorePos, MyLib::Renderer::FontType::Large);
+	m_pScoreUI->SetText(L"スコア");
+
+	m_pTimeBonusUI = std::make_shared<ParamUI>();
+	m_pTimeBonusUI->Init(kTextTimePos + kTextBonusPosMargin, MyLib::Renderer::FontType::Small);
+	m_pTimeBonusUI->SetBetweenSymbol(L"+");
+	m_pTimeBonusUI->SetText(L"スコアボーナス! ");
+
+	m_pLifeBonusUI = std::make_shared<ParamUI>();
+	m_pLifeBonusUI->Init(kTextLifePos + kTextBonusPosMargin, MyLib::Renderer::FontType::Small);
+	m_pLifeBonusUI->SetBetweenSymbol(L"+");
+	m_pLifeBonusUI->SetText(L"スコアボーナス! ");
+
+	m_pComboBonusUI = std::make_shared<ParamUI>();
+	m_pComboBonusUI->Init(kTextMaxComboPos + kTextBonusPosMargin, MyLib::Renderer::FontType::Small);
+	m_pComboBonusUI->SetBetweenSymbol(L"+");
+	m_pComboBonusUI->SetText(L"スコアボーナス! ");
 
 	m_pUISelectList = MyLib::ObjectFactory::CreateUISelectList(kSelectListPos, MyLib::Renderer::FontType::Small);
 	m_pUISelectList->Init();
@@ -81,25 +148,76 @@ void ResultScene::Init()
 	if (auto selectList = m_pSelectList.lock())
 	{
 
-		selectList->SetSize(kSelectListSize);
+		// クリアしたステージが最後のステージだった場合は次のステージに進めないようにする
+		if (m_pResultData->stageNo >= Game::kStageNum)
+		{
+			selectList->SetSize(kSelectListSize);
+			selectList->SetBackGroundHandle(FileManager::GetInstance().GetImage(L"Data/File/Image/dialog_back_green.png", false));
 
-		selectList->AddOption(L"リトライ", [this]()
-			{
-				// ゲームシーンに戻る
-				m_sceneController.ChangeScene(std::make_shared<GameScene>(m_sceneController, m_stageNo));
-			});
-		selectList->AddOption(L"ステージセレクトに戻る", [this]()
-			{
-				MyLib::ObjectManager::GetInstance().End();
-				m_sceneController.ResetScene(std::make_shared<SelectScene>(m_sceneController));
+			selectList->AddOption(L"ステージセレクトに戻る", [this]()
+				{
+					MyLib::ObjectManager::GetInstance().End();
+					m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+						[&controller = m_sceneController] {return std::make_shared<SelectScene>(controller); }, L"Data/File/CSV/Resource/select_scene.csv", m_sceneController, LoadingScene::TransitionType::Reset));
 
-			});
-		selectList->AddOption(L"タイトルに戻る", [this]()
-			{
-				MyLib::ObjectManager::GetInstance().End();
-				m_sceneController.ResetScene(std::make_shared<TitleScene>(m_sceneController));
-			});
+				});
+			selectList->AddOption(L"タイトルに戻る", [this]()
+				{
+					MyLib::ObjectManager::GetInstance().End();
+					m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+						[&controller = m_sceneController] {return std::make_shared<TitleScene>(controller); }, L"Data/File/CSV/Resource/title_scene.csv", m_sceneController, LoadingScene::TransitionType::Reset));
+				});
+		}
+		else
+		{
+			selectList->SetSize(kSelectListSize);
+			selectList->SetBackGroundHandle(FileManager::GetInstance().GetImage(L"Data/File/Image/dialog_back_green.png", false));
+
+			selectList->AddOption(L"次のステージへ", [this]()
+				{
+						// 次のステージへ移行
+						m_sceneController.ChangeScene(std::make_shared<GameScene>(m_sceneController, ++m_pResultData->stageNo));
+				});
+			selectList->AddOption(L"ステージセレクトに戻る", [this]()
+				{
+						MyLib::ObjectManager::GetInstance().End();
+						m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+							[&controller = m_sceneController] {return std::make_shared<SelectScene>(controller); }, L"Data/File/CSV/Resource/select_scene.csv", m_sceneController, LoadingScene::TransitionType::Reset));
+
+				});
+			selectList->AddOption(L"タイトルに戻る", [this]()
+				{
+						MyLib::ObjectManager::GetInstance().End();
+						m_sceneController.ChangeScene(std::make_shared<LoadingScene>(
+							[&controller = m_sceneController] {return std::make_shared<TitleScene>(controller); }, L"Data/File/CSV/Resource/title_scene.csv", m_sceneController, LoadingScene::TransitionType::Reset));
+				});
+		}
 	}
+
+	m_pHighScoreBoard = std::make_shared<BoardUI>();
+	m_pHighScoreBoard->Init(kHighScoreBoardPos, kHighScoreBoardSize);
+	m_pHighScoreBoard->SetBackGround(FileManager::GetInstance().GetImage(L"Data/File/Image/dialog_back_green.png", false));
+	m_pHighScoreBoard->SetTitle(L"ハイスコア");
+	m_pHighScoreBoard->SetSeparatorOffsetX(kHighScoreSeparatorOffsetX);
+	std::vector<int> highScore = Application::GetInstance().GetHighScore();
+	m_pHighScoreBoard->AddParam(L"チュートリアル", highScore[Game::kTutorialStageNo]);
+	m_pHighScoreBoard->AddParam(L"ステージ1", highScore[Game::kStage1No]);
+	m_pHighScoreBoard->AddParam(L"ステージ2", highScore[Game::kStage2No]);
+
+	m_prevHighScore = highScore[m_pResultData->stageNo];
+
+	m_pDisplayedResultData = std::make_shared<ResultData>();
+
+	SetResultData();
+
+	// タイムボーナスの計算(既定の秒数を超えるまではボーナスがもらえる)
+	m_bonusScore.timeBonus = std::max(0, (kTimeBonusLimitSec - m_pResultData->clearTime / Game::kFrameRate) * kTimeBonusMax);
+	// 残り体力ボーナスの計算
+	m_bonusScore.lifeBonus = m_pResultData->life * kLifeBonusScore;
+	// 最大コンボボーナスの計算
+	m_bonusScore.comboBonus = m_pResultData->maxCombo * kMaxComboBonusScore;
+
+	m_displayedBonusScore = m_bonusScore;
 
 	auto& soundManager = SoundManager::GetInstance();
 	soundManager.LoadSoundClip("TitleBGM", L"Data/File/Sound/BGM/title.ogg", SoundBus::BGM, 1.0f, true);
@@ -116,8 +234,18 @@ void ResultScene::End()
 	//printfDx("ResultScene:終了");
 	m_pSkybox->End();
 	m_pUIText->End();
-	m_pUITextTime->End();
 	m_pUISelectList->End();
+	
+	m_pScoreUI->End();
+	m_pTimeUI->End();
+	m_pLifeUI->End();
+	m_pMaxComboUI->End();
+
+	m_pTimeBonusUI->End();
+	m_pLifeBonusUI->End();
+	m_pComboBonusUI->End();
+
+	m_pHighScoreBoard->End();
 
 	auto& soundManager = SoundManager::GetInstance();
 	soundManager.DeleteSoundClip("TitleBGM");
@@ -138,8 +266,8 @@ void ResultScene::Draw() const
 {
 	(this->*m_draw)();
 #ifdef _DEBUG
-	DrawString(0, 0, L"ResultScene", GetColor(255, 255, 255));
-	DrawFormatString(0, 16, GetColor(255, 255, 255), L"FRAME:%d", m_frameCount);
+	DrawString(0, 0, L"ResultScene", kDebugTextColor);
+	DrawFormatString(0, kDebugTextLineHeight, kDebugTextColor, L"FRAME:%d", m_frameCount);
 #endif // _DEBUG
 
 }
@@ -164,7 +292,7 @@ void ResultScene::FadeOutUpdate()
 	{
 		auto selectList = m_pSelectList.lock();
 
-		if (selectList->IsMatchedCursor(L"リトライ"))
+		if (selectList->IsMatchedCursor(L"次のステージへ"))
 		{
 			SoundManager::GetInstance().CrossFadeBGM("GameBGM", 1.0f);
 		}
@@ -200,6 +328,57 @@ void ResultScene::NormalUpdate()
 		selectList->MoveCursor(kCursorMoveIndex);
 	}
 
+	if (m_pDisplayedResultData->score < m_pResultData->score)
+	{
+		MyLib::UpdateParam(m_pDisplayedResultData->score, m_pResultData->score);
+	}
+	else
+	{
+		if (m_displayedBonusScore.timeBonus > 0)
+		{
+			MyLib::UpdateParamAdjustment(m_pDisplayedResultData->score, m_displayedBonusScore.timeBonus, m_pDisplayedResultData->score + m_bonusScore.timeBonus);
+		}
+		else
+		{
+			if (m_displayedBonusScore.lifeBonus > 0)
+			{
+				MyLib::UpdateParamAdjustment(m_pDisplayedResultData->score, m_displayedBonusScore.lifeBonus, m_pDisplayedResultData->score + m_bonusScore.lifeBonus);
+			}
+			else
+			{
+				if (m_displayedBonusScore.comboBonus > 0)
+				{
+					MyLib::UpdateParamAdjustment(m_pDisplayedResultData->score, m_displayedBonusScore.comboBonus, m_pDisplayedResultData->score + m_bonusScore.comboBonus);
+				}
+			}
+		}
+	}
+
+	// ハイスコアの場合更新する
+	if(m_prevHighScore < m_pDisplayedResultData->score)
+	{
+		m_pHighScoreBoard->SetParam(m_pResultData->stageNo, m_pDisplayedResultData->score);
+		Application::GetInstance().SetHighScore(m_pDisplayedResultData->score, m_pResultData->stageNo);
+	}
+
+	if (m_pDisplayedResultData->clearTime < m_pResultData->clearTime)
+	{
+		MyLib::UpdateParam(m_pDisplayedResultData->clearTime, m_pResultData->clearTime);
+	}
+
+	if (m_pDisplayedResultData->life < m_pResultData->life)
+	{
+		MyLib::UpdateParam(m_pDisplayedResultData->life, m_pResultData->life);
+	}
+
+	if (m_pDisplayedResultData->maxCombo < m_pResultData->maxCombo)
+	{
+		MyLib::UpdateParam(m_pDisplayedResultData->maxCombo, m_pResultData->maxCombo);
+	}
+
+	
+
+	SetResultData();
 
 	if (input.IsTriggered("OK"))
 	{
@@ -222,4 +401,24 @@ void ResultScene::FadeDraw() const
 
 void ResultScene::NormalDraw() const
 {
+}
+
+void ResultScene::SetResultData()
+{
+	// スコアを表示するUIの設定
+	m_pScoreUI->SetParam(m_pDisplayedResultData->score);
+
+	// クリアタイムを表示するUIの設定
+	m_pTimeUI->SetParam(m_pDisplayedResultData->clearTime / Game::kFrameRate);
+
+	// 残り体力を表示するUIの設定
+	m_pLifeUI->SetParam(m_pDisplayedResultData->life);
+
+	// 最大コンボを表示するUIの設定
+	m_pMaxComboUI->SetParam(m_pDisplayedResultData->maxCombo);
+
+	// それぞれのボーナススコアを表示するUIの設定
+	m_pTimeBonusUI->SetParam(m_displayedBonusScore.timeBonus);
+	m_pLifeBonusUI->SetParam(m_displayedBonusScore.lifeBonus);
+	m_pComboBonusUI->SetParam(m_displayedBonusScore.comboBonus);
 }

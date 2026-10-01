@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../MyLib/MyString.h"
 #include <vector>
 #include <string>

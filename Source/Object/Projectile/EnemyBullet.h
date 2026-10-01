@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../../MyLib/GameObject.h"
 #include "../../MyLib/Collider/SphereCollider.h"
 #include <memory>

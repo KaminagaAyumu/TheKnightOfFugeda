@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "../MyLib/Renderer.h"
 #include "../../Object/Enemy/EnemyManager.h"
 #include <memory>
@@ -24,6 +24,8 @@ namespace MyLib
 
 		std::shared_ptr<GameObject> CreateEnemy(EnemyManager::EnemyType type);
 
+		std::shared_ptr<GameObject> CreateItem();
+
 		std::shared_ptr<GameObject> CreateSkybox();
 
 		std::shared_ptr<GameObject> CreateBullet(const Vector3& pos, const Vector3& target, std::weak_ptr<GameObject> shooter);
@@ -39,6 +41,8 @@ namespace MyLib
 		std::shared_ptr<GameObject> CreateUICountDown(const Vector2Int& pos, MyLib::Renderer::FontType type);
 		
 		std::shared_ptr<GameObject> CreateUIText(const Vector2Int& pos, MyLib::Renderer::FontType type);
+
+		std::shared_ptr<GameObject> CreateUICombo(const Vector2Int& pos, MyLib::Renderer::FontType type);
 	};
 }
 

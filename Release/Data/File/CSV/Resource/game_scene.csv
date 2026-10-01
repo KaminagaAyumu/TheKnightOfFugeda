@@ -2,6 +2,8 @@ path,type,eternal
 Data/File/Image/life.png,Image,0
 Data/File/Image/life_empty.png,Image,0
 Data/File/Image/lockon.png,Image,0
+Data/File/Image/gameover.png,Image,0
+Data/File/Image/dialog_back_green.png,Image,0
 Data/File/Model/player.mv1,Model,0
 Data/File/Model/sword.mv1,Model,0
 Data/File/Model/shield.mv1,Model,0
@@ -16,3 +18,4 @@ Data/File/Model/ground_1.mv1,Model,0
 Data/File/Model/wall_1.mv1,Model,0
 Data/File/Model/ground_2.mv1,Model,0
 Data/File/Model/wall_2.mv1,Model,0
+Data/File/Model/coin.mv1,Model,0

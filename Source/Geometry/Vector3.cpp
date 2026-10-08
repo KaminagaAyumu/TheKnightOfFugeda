@@ -1,4 +1,4 @@
-﻿#include "Vector3.h"
+#include "Vector3.h"
 #include <cmath>
 #include <cassert>
 
@@ -40,22 +40,24 @@ float Vector3::SqrLength()
 
 void Vector3::Normalize()
 {
-	if (Length() == 0.0f)
+	const float len = Length();
+	if (len == 0.0f)
 	{
 		return;
 	}
-	x /= Length();
-	y /= Length();
-	z /= Length();
+	x /= len;
+	y /= len;
+	z /= len;
 }
 
 const Vector3 Vector3::Normalized()
 {
-	if (Length() == 0.0f)
+	const float len = Length();
+	if (len == 0.0f)
 	{
 		return Vector3::Zero();
 	}
-	return Vector3(x / Length(), y / Length(), z / Length());
+	return Vector3(x / len, y / len, z / len);
 }
 
 const Vector3 Vector3::SetAll(float val)

@@ -1,4 +1,4 @@
-﻿#include "LoadingScene.h"
+#include "LoadingScene.h"
 #include "SceneController.h"
 #include "../Utility/Game.h"
 #include "../Utility/CSV/ResourceManifestData.h"
@@ -104,7 +104,7 @@ void LoadingScene::Draw() const
 	DrawString(kLoadingGaugeLeft, textY, L"Loading...", kTextColor);
 	DrawFormatString(Game::kScreenWidth / 2 - kProgressTextOffsetX, textY, kTextColor, L"%.0f％", FileManager::GetInstance().GetLoadProgress() * kPercentRate);
 
-	DrawBox(kLoadingGaugeLeft, gaugeTop, kLoadingGaugeLeft + kLoadingGaugeSize.x * (FileManager::GetInstance().GetLoadProgress()), gaugeBottom, kFillColor, true);
+	DrawBox(kLoadingGaugeLeft, gaugeTop, static_cast<int>(kLoadingGaugeLeft + kLoadingGaugeSize.x * (FileManager::GetInstance().GetLoadProgress())), gaugeBottom, kFillColor, true);
 	DrawBox(kLoadingGaugeLeft, gaugeTop, kLoadingGaugeLeft + kLoadingGaugeSize.x, gaugeBottom, kFrameColor, false);
 
 }

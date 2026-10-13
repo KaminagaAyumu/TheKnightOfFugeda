@@ -1,4 +1,4 @@
-﻿#include "UIImage.h"
+#include "UIImage.h"
 #include "../../../GameObject.h"
 #include "../../../Renderer.h"
 #include "../../../../Geometry/Vector2Int.h"
@@ -221,10 +221,10 @@ void MyLib::UIImage::Draw() const
 	{
 		// 枠の画像を描画
 		DrawExtendGraph(
-			pos.x - (m_graphSize.x * m_scale.x) / 2,
-			pos.y - (m_graphSize.y * m_scale.y) / 2,
-			pos.x + (m_graphSize.x * m_scale.x) / 2,
-			pos.y + (m_graphSize.y * m_scale.y) / 2,
+			pos.x - (m_graphSize.x * static_cast<int>(m_scale.x)) / 2,
+			pos.y - (m_graphSize.y * static_cast<int>(m_scale.y)) / 2,
+			pos.x + (m_graphSize.x * static_cast<int>(m_scale.x)) / 2,
+			pos.y + (m_graphSize.y * static_cast<int>(m_scale.y)) / 2,
 			m_pFrameFile->GetHandle(), true);
 	}
 

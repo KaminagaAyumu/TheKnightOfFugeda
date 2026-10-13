@@ -1,4 +1,4 @@
-﻿#include "TitleScene.h"
+#include "TitleScene.h"
 #include "SelectScene.h"
 #include "DebugScene.h"
 #include "LoadingScene.h"
@@ -11,7 +11,6 @@
 #include "../Utility/File/FileManager.h"
 #include "../Utility/File/ImageFile.h"
 #include "../Utility/Game.h"
-#include "../Utility/JsonReader.h"
 #include "../MyLib/ObjectFactory.h"
 #include "../MyLib/ObjectManager.h"
 #include "../MyLib/Component/Draw/UI/UIImage.h"

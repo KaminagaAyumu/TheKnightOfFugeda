@@ -286,7 +286,6 @@
     <ClCompile Include="Utility\File\FileManager.cpp" />
     <ClCompile Include="Utility\File\ImageFile.cpp" />
     <ClCompile Include="Utility\Input.cpp" />
-    <ClCompile Include="Utility\JsonReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common\ComboCounter.h" />
@@ -434,7 +433,6 @@
     <ClInclude Include="Scene\SceneBase.h" />
     <ClInclude Include="Scene\SceneController.h" />
     <ClInclude Include="Utility\Input.h" />
-    <ClInclude Include="Utility\JsonReader.h" />
     <ClInclude Include="Utility\ResourceRequest.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
